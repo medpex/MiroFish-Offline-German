@@ -1,6 +1,6 @@
 """
-Graph building service.
-Uses GraphStorage (Neo4j) to replace Zep Cloud API.
+Graph-Erstellungsdienst.
+Verwendet GraphStorage (Neo4j) anstelle der Zep Cloud API.
 """
 
 import time
@@ -19,7 +19,7 @@ logger = logging.getLogger('mirofish.graph_builder')
 
 @dataclass
 class GraphInfo:
-    """Graph information"""
+    """Graph-Informationen"""
     graph_id: str
     node_count: int
     edge_count: int
@@ -36,8 +36,8 @@ class GraphInfo:
 
 class GraphBuilderService:
     """
-    Graph building service
-    Build knowledge graph through GraphStorage interface
+    Graph-Erstellungsdienst
+    Erstellt Wissensgraph über die GraphStorage-Schnittstelle
     """
 
     def __init__(self, storage: GraphStorage):
@@ -54,20 +54,20 @@ class GraphBuilderService:
         batch_size: int = 3
     ) -> str:
         """
-        Build graph asynchronously
+        Graph asynchron erstellen
 
         Args:
-            text: Input text to process
-            ontology: Ontology definition (from ontology generator output)
-            graph_name: Name for the graph
-            chunk_size: Text chunk size
-            chunk_overlap: Chunk overlap size
-            batch_size: Number of chunks to send per batch
+            text: Eingabetext zur Verarbeitung
+            ontology: Ontologie-Definition (aus Ontologie-Generator-Ausgabe)
+            graph_name: Name für den Graph
+            chunk_size: Textabschnittgröße
+            chunk_overlap: Überlappungsgröße der Abschnitte
+            batch_size: Anzahl der Abschnitte pro Batch
 
         Returns:
-            Task ID
+            Aufgaben-ID
         """
-        # Create task
+        # Aufgabe erstellen
         task_id = self.task_manager.create_task(
             task_type="graph_build",
             metadata={
@@ -77,7 +77,7 @@ class GraphBuilderService:
             }
         )
 
-        # Execute build in background thread
+        # Erstellung im Hintergrund-Thread ausführen
         thread = threading.Thread(
             target=self._build_graph_worker,
             args=(task_id, text, ontology, graph_name, chunk_size, chunk_overlap, batch_size)
@@ -97,41 +97,41 @@ class GraphBuilderService:
         chunk_overlap: int,
         batch_size: int
     ):
-        """Graph build worker thread"""
+        """Graph-Erstellungs-Worker-Thread"""
         try:
             self.task_manager.update_task(
                 task_id,
                 status=TaskStatus.PROCESSING,
                 progress=5,
-                message="Starting graph building..."
+                message="Starte Graph-Erstellung..."
             )
 
-            # 1. Create graph
+            # 1. Graph erstellen
             graph_id = self.create_graph(graph_name)
             self.task_manager.update_task(
                 task_id,
                 progress=10,
-                message=f"Graph created: {graph_id}"
+                message=f"Graph erstellt: {graph_id}"
             )
 
-            # 2. Set ontology
+            # 2. Ontologie setzen
             self.set_ontology(graph_id, ontology)
             self.task_manager.update_task(
                 task_id,
                 progress=15,
-                message="Ontology set"
+                message="Ontologie gesetzt"
             )
 
-            # 3. Text chunking
+            # 3. Text aufteilen
             chunks = TextProcessor.split_text(text, chunk_size, chunk_overlap)
             total_chunks = len(chunks)
             self.task_manager.update_task(
                 task_id,
                 progress=20,
-                message=f"Text split into {total_chunks} chunks"
+                message=f"Text in {total_chunks} Abschnitte aufgeteilt"
             )
 
-            # 4. Send data in batches (NER + embedding + Neo4j insert — synchronous)
+            # 4. Daten batchweise senden (NER + Embedding + Neo4j-Einfügung — synchron)
             episode_uuids = self.add_text_batches(
                 graph_id, chunks, batch_size,
                 lambda msg, prog: self.task_manager.update_task(
@@ -141,19 +141,19 @@ class GraphBuilderService:
                 )
             )
 
-            # 5. Wait for processing (no-op for Neo4j — already synchronous)
+            # 5. Auf Verarbeitung warten (bei Neo4j nicht nötig — bereits synchron)
             self.storage.wait_for_processing(episode_uuids)
 
             self.task_manager.update_task(
                 task_id,
                 progress=85,
-                message="Data processing completed, getting graph information..."
+                message="Datenverarbeitung abgeschlossen, rufe Graph-Informationen ab..."
             )
 
-            # 6. Get graph information
+            # 6. Graph-Informationen abrufen
             graph_info = self._get_graph_info(graph_id)
 
-            # Completed
+            # Abgeschlossen
             self.task_manager.complete_task(task_id, {
                 "graph_id": graph_id,
                 "graph_info": graph_info.to_dict(),
@@ -166,7 +166,7 @@ class GraphBuilderService:
             self.task_manager.fail_task(task_id, error_msg)
 
     def create_graph(self, name: str) -> str:
-        """Create graph"""
+        """Graph erstellen"""
         return self.storage.create_graph(
             name=name,
             description="MiroFish Social Simulation Graph"
@@ -174,11 +174,11 @@ class GraphBuilderService:
 
     def set_ontology(self, graph_id: str, ontology: Dict[str, Any]):
         """
-        SetGraphOntology
+        Graph-Ontologie setzen
 
-        Simply stores ontology as JSON in the Graph node.
-        No more dynamic Pydantic class creation (was Zep-specific).
-        The NER extractor reads this ontology to guide extraction.
+        Speichert die Ontologie einfach als JSON im Graph-Knoten.
+        Keine dynamische Pydantic-Klassenerstellung mehr (war Zep-spezifisch).
+        Der NER-Extraktor liest diese Ontologie, um die Extraktion zu steuern.
         """
         self.storage.set_ontology(graph_id, ontology)
 
@@ -189,12 +189,12 @@ class GraphBuilderService:
         batch_size: int = 3,
         progress_callback: Optional[Callable] = None
     ) -> List[str]:
-        """Add text in batches to graph, return uuid list of all episodes"""
+        """Text batchweise zum Graph hinzufügen, UUID-Liste aller Episoden zurückgeben"""
         episode_uuids = []
         total_chunks = len(chunks)
         total_batches = (total_chunks + batch_size - 1) // batch_size
 
-        logger.info(f"[graph_build] Starting: {total_chunks} chunks, {total_batches} batches (batch_size={batch_size})")
+        logger.info(f"[graph_build] Starte: {total_chunks} Abschnitte, {total_batches} Batches (batch_size={batch_size})")
 
         for i in range(0, total_chunks, batch_size):
             batch_chunks = chunks[i:i + batch_size]
@@ -203,7 +203,7 @@ class GraphBuilderService:
             if progress_callback:
                 progress = (i + len(batch_chunks)) / total_chunks
                 progress_callback(
-                    f"Processing batch {batch_num}/{total_batches} ({len(batch_chunks)} chunks)...",
+                    f"Verarbeite Batch {batch_num}/{total_batches} ({len(batch_chunks)} Abschnitte)...",
                     progress
                 )
 
@@ -211,8 +211,8 @@ class GraphBuilderService:
                 chunk_idx = i + j + 1
                 chunk_preview = chunk[:80].replace('\n', ' ')
                 logger.info(
-                    f"[graph_build] Chunk {chunk_idx}/{total_chunks} "
-                    f"({len(chunk)} chars): \"{chunk_preview}...\""
+                    f"[graph_build] Abschnitt {chunk_idx}/{total_chunks} "
+                    f"({len(chunk)} Zeichen): \"{chunk_preview}...\""
                 )
                 t0 = time.time()
                 try:
@@ -220,23 +220,23 @@ class GraphBuilderService:
                     episode_uuids.append(episode_id)
                     elapsed = time.time() - t0
                     logger.info(
-                        f"[graph_build] Chunk {chunk_idx}/{total_chunks} done in {elapsed:.1f}s"
+                        f"[graph_build] Abschnitt {chunk_idx}/{total_chunks} fertig in {elapsed:.1f}s"
                     )
                 except Exception as e:
                     elapsed = time.time() - t0
                     logger.error(
-                        f"[graph_build] Chunk {chunk_idx}/{total_chunks} FAILED "
-                        f"after {elapsed:.1f}s: {e}"
+                        f"[graph_build] Abschnitt {chunk_idx}/{total_chunks} FEHLGESCHLAGEN "
+                        f"nach {elapsed:.1f}s: {e}"
                     )
                     if progress_callback:
-                        progress_callback(f"Batch {batch_num} processing failed: {str(e)}", 0)
+                        progress_callback(f"Batch {batch_num} Verarbeitung fehlgeschlagen: {str(e)}", 0)
                     raise
 
-        logger.info(f"[graph_build] All {total_chunks} chunks processed successfully")
+        logger.info(f"[graph_build] Alle {total_chunks} Abschnitte erfolgreich verarbeitet")
         return episode_uuids
 
     def _get_graph_info(self, graph_id: str) -> GraphInfo:
-        """Get graph information"""
+        """Graph-Informationen abrufen"""
         info = self.storage.get_graph_info(graph_id)
         return GraphInfo(
             graph_id=info["graph_id"],
@@ -246,9 +246,9 @@ class GraphBuilderService:
         )
 
     def get_graph_data(self, graph_id: str) -> Dict[str, Any]:
-        """Get complete graph data (including details)"""
+        """Vollständige Graph-Daten abrufen (einschließlich Details)"""
         return self.storage.get_graph_data(graph_id)
 
     def delete_graph(self, graph_id: str):
-        """Delete graph"""
+        """Graph löschen"""
         self.storage.delete_graph(graph_id)

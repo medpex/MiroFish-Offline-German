@@ -1,9 +1,9 @@
 """
-NER/RE Extractor — entity and relation extraction via local LLM
+NER/RE-Extraktor — Entitäts- und Beziehungsextraktion mittels lokalem LLM
 
-Replaces Zep Cloud's built-in NER/RE pipeline.
-Uses LLMClient.chat_json() with a structured prompt to extract
-entities and relations from text chunks, guided by the graph's ontology.
+Ersetzt die integrierte NER/RE-Pipeline von Zep Cloud.
+Verwendet LLMClient.chat_json() mit einem strukturierten Prompt zur Extraktion
+von Entitäten und Beziehungen aus Textabschnitten, gesteuert durch die Graph-Ontologie.
 """
 
 import logging
@@ -13,22 +13,22 @@ from ..utils.llm_client import LLMClient
 
 logger = logging.getLogger('mirofish.ner_extractor')
 
-# System prompt template for NER/RE extraction
-_SYSTEM_PROMPT = """You are a Named Entity Recognition and Relation Extraction system.
-Given a text and an ontology (entity types + relation types), extract all entities and relations.
+# System-Prompt-Vorlage für die Erkennung benannter Entitäten und Beziehungsextraktion
+_SYSTEM_PROMPT = """Sie sind ein System zur Erkennung benannter Entitäten und Beziehungsextraktion.
+Gegeben einen Text und eine Ontologie (Entitätstypen + Beziehungstypen), extrahieren Sie alle Entitäten und Beziehungen.
 
-ONTOLOGY:
+ONTOLOGIE:
 {ontology_description}
 
-RULES:
-1. Only extract entity types and relation types defined in the ontology.
-2. Normalize entity names: strip whitespace, use canonical form (e.g., "Jack Ma" not "ma jack").
-3. Each entity must have: name, type (from ontology), and optional attributes.
-4. Each relation must have: source entity name, target entity name, type (from ontology), and a fact sentence describing the relationship.
-5. If no entities or relations are found, return empty lists.
-6. Be precise — only extract what is explicitly stated or strongly implied in the text.
+REGELN:
+1. Extrahieren Sie nur Entitätstypen und Beziehungstypen, die in der Ontologie definiert sind.
+2. Normalisieren Sie Entitätsnamen: Entfernen Sie Leerzeichen, verwenden Sie die kanonische Form (z. B. "Max Mustermann" statt "mustermann max").
+3. Jede Entität muss enthalten: Name, Typ (aus der Ontologie) und optionale Attribute.
+4. Jede Beziehung muss enthalten: Name der Quellentität, Name der Zielentität, Typ (aus der Ontologie) und einen Faktensatz, der die Beziehung beschreibt.
+5. Wenn keine Entitäten oder Beziehungen gefunden werden, geben Sie leere Listen zurück.
+6. Seien Sie präzise — extrahieren Sie nur das, was explizit im Text angegeben oder stark impliziert ist.
 
-Return ONLY valid JSON in this exact format:
+Geben Sie NUR gültiges JSON in diesem exakten Format zurück:
 {{
   "entities": [
     {{"name": "...", "type": "...", "attributes": {{"key": "value"}}}}
@@ -38,13 +38,13 @@ Return ONLY valid JSON in this exact format:
   ]
 }}"""
 
-_USER_PROMPT = """Extract entities and relations from the following text:
+_USER_PROMPT = """Extrahieren Sie Entitäten und Beziehungen aus dem folgenden Text:
 
 {text}"""
 
 
 class NERExtractor:
-    """Extract entities and relations from text using local LLM."""
+    """Entitäten und Beziehungen aus Text mittels lokalem LLM extrahieren."""
 
     def __init__(self, llm_client: Optional[LLMClient] = None, max_retries: int = 2):
         self.llm = llm_client or LLMClient()
@@ -52,14 +52,14 @@ class NERExtractor:
 
     def extract(self, text: str, ontology: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Extract entities and relations from text, guided by ontology.
+        Entitäten und Beziehungen aus Text extrahieren, gesteuert durch die Ontologie.
 
         Args:
-            text: Input text chunk
-            ontology: Dict with 'entity_types' and 'relation_types' from graph
+            text: Eingabetextabschnitt
+            ontology: Dict mit 'entity_types' und 'relation_types' aus dem Graph
 
         Returns:
-            Dict with 'entities' and 'relations' lists:
+            Dict mit Listen 'entities' und 'relations':
             {
                 "entities": [{"name": str, "type": str, "attributes": dict}],
                 "relations": [{"source": str, "target": str, "type": str, "fact": str}]
@@ -82,7 +82,7 @@ class NERExtractor:
             try:
                 result = self.llm.chat_json(
                     messages=messages,
-                    temperature=0.1,  # Low temp for extraction precision
+                    temperature=0.1,  # Niedrige Temperatur für Extraktionspräzision
                     max_tokens=4096,
                 )
                 return self._validate_and_clean(result, ontology)
@@ -90,26 +90,26 @@ class NERExtractor:
             except ValueError as e:
                 last_error = e
                 logger.warning(
-                    f"NER extraction failed (attempt {attempt + 1}): invalid JSON — {e}"
+                    f"NER-Extraktion fehlgeschlagen (Versuch {attempt + 1}): ungültiges JSON — {e}"
                 )
             except Exception as e:
                 last_error = e
-                logger.error(f"NER extraction error: {e}")
+                logger.error(f"NER-Extraktionsfehler: {e}")
                 if attempt >= self.max_retries:
                     break
 
         logger.error(
-            f"NER extraction failed after {self.max_retries + 1} attempts: {last_error}"
+            f"NER-Extraktion nach {self.max_retries + 1} Versuchen fehlgeschlagen: {last_error}"
         )
         return {"entities": [], "relations": []}
 
     def _format_ontology(self, ontology: Dict[str, Any]) -> str:
-        """Format ontology dict into readable text for the LLM prompt."""
+        """Ontologie-Dict in lesbaren Text für den LLM-Prompt formatieren."""
         parts = []
 
         entity_types = ontology.get("entity_types", [])
         if entity_types:
-            parts.append("Entity Types:")
+            parts.append("Entitätstypen:")
             for et in entity_types:
                 if isinstance(et, dict):
                     name = et.get("name", str(et))
@@ -120,14 +120,14 @@ class NERExtractor:
                         line += f": {desc}"
                     if attrs:
                         attr_names = [a.get("name", str(a)) if isinstance(a, dict) else str(a) for a in attrs]
-                        line += f" (attributes: {', '.join(attr_names)})"
+                        line += f" (Attribute: {', '.join(attr_names)})"
                     parts.append(line)
                 else:
                     parts.append(f"  - {et}")
 
         relation_types = ontology.get("relation_types", ontology.get("edge_types", []))
         if relation_types:
-            parts.append("\nRelation Types:")
+            parts.append("\nBeziehungstypen:")
             for rt in relation_types:
                 if isinstance(rt, dict):
                     name = rt.get("name", str(rt))
@@ -144,18 +144,18 @@ class NERExtractor:
                     parts.append(f"  - {rt}")
 
         if not parts:
-            parts.append("No specific ontology defined. Extract all entities and relations you find.")
+            parts.append("Keine spezifische Ontologie definiert. Extrahieren Sie alle Entitäten und Beziehungen, die Sie finden.")
 
         return "\n".join(parts)
 
     def _validate_and_clean(
         self, result: Dict[str, Any], ontology: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Validate and normalize LLM output."""
+        """LLM-Ausgabe validieren und normalisieren."""
         entities = result.get("entities", [])
         relations = result.get("relations", [])
 
-        # Get valid type names from ontology
+        # Gültige Typnamen aus der Ontologie ermitteln
         valid_entity_types = set()
         for et in ontology.get("entity_types", []):
             if isinstance(et, dict):
@@ -170,7 +170,7 @@ class NERExtractor:
             else:
                 valid_relation_types.add(str(rt).strip())
 
-        # Clean entities
+        # Entitäten bereinigen
         cleaned_entities = []
         seen_names = set()
         for entity in entities:
@@ -181,15 +181,15 @@ class NERExtractor:
             if not name:
                 continue
 
-            # Deduplicate by normalized name
+            # Deduplizierung nach normalisiertem Namen
             name_lower = name.lower()
             if name_lower in seen_names:
                 continue
             seen_names.add(name_lower)
 
-            # If ontology has types, warn but keep entities with unknown types
+            # Wenn die Ontologie Typen hat, warnen, aber Entitäten mit unbekannten Typen behalten
             if valid_entity_types and etype not in valid_entity_types:
-                logger.debug(f"Entity '{name}' has type '{etype}' not in ontology, keeping anyway")
+                logger.debug(f"Entität '{name}' hat Typ '{etype}', der nicht in der Ontologie ist, wird dennoch beibehalten")
 
             cleaned_entities.append({
                 "name": name,
@@ -197,7 +197,7 @@ class NERExtractor:
                 "attributes": entity.get("attributes", {}),
             })
 
-        # Clean relations
+        # Beziehungen bereinigen
         cleaned_relations = []
         entity_names_lower = {e["name"].lower() for e in cleaned_entities}
         for relation in relations:
@@ -211,8 +211,8 @@ class NERExtractor:
             if not source or not target:
                 continue
 
-            # Ensure source and target entities exist
-            # (they might not if LLM hallucinated a relation without the entity)
+            # Sicherstellen, dass Quell- und Zielentitäten existieren
+            # (sie könnten fehlen, wenn das LLM eine Beziehung ohne die Entität halluziniert hat)
             if source.lower() not in entity_names_lower:
                 cleaned_entities.append({
                     "name": source,

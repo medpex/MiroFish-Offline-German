@@ -1,8 +1,8 @@
 """
-Entity reading and filtering service.
-Reads nodes from Neo4j graph, filters out meaningful entity type nodes.
+Entitätslese- und Filterdienst.
+Liest Knoten aus dem Neo4j-Graph und filtert aussagekräftige Entitätstyp-Knoten heraus.
 
-Replaces zep_entity_reader.py — all Zep Cloud calls replaced by GraphStorage.
+Ersetzt zep_entity_reader.py — alle Zep-Cloud-Aufrufe durch GraphStorage ersetzt.
 """
 
 from typing import Dict, Any, List, Optional, Set
@@ -16,15 +16,15 @@ logger = get_logger('mirofish.entity_reader')
 
 @dataclass
 class EntityNode:
-    """Entity node data structure"""
+    """Entitätsknoten-Datenstruktur"""
     uuid: str
     name: str
     labels: List[str]
     summary: str
     attributes: Dict[str, Any]
-    # Related edges
+    # Zugehörige Kanten
     related_edges: List[Dict[str, Any]] = field(default_factory=list)
-    # Related other nodes
+    # Zugehörige andere Knoten
     related_nodes: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -39,7 +39,7 @@ class EntityNode:
         }
 
     def get_entity_type(self) -> Optional[str]:
-        """Get entity type (exclude default Entity label)"""
+        """Entitätstyp abrufen (Standard-Entity-Label ausschließen)"""
         for label in self.labels:
             if label not in ["Entity", "Node"]:
                 return label
@@ -48,7 +48,7 @@ class EntityNode:
 
 @dataclass
 class FilteredEntities:
-    """Filtered entity set"""
+    """Gefilterte Entitätsmenge"""
     entities: List[EntityNode]
     entity_types: Set[str]
     total_count: int
@@ -65,12 +65,12 @@ class FilteredEntities:
 
 class EntityReader:
     """
-    Entity reading and filtering service (via GraphStorage / Neo4j)
+    Entitätslese- und Filterdienst (über GraphStorage / Neo4j)
 
-    Main capabilities:
-    1. Read all nodes from the graph
-    2. Filter out meaningful entity type nodes (nodes whose labels are not just "Entity")
-    3. Get related edges and linked node information for each entity
+    Hauptfunktionen:
+    1. Alle Knoten aus dem Graph lesen
+    2. Aussagekräftige Entitätstyp-Knoten herausfiltern (Knoten, deren Labels nicht nur "Entity" sind)
+    3. Zugehörige Kanten und verknüpfte Knoteninformationen für jede Entität abrufen
     """
 
     def __init__(self, storage: GraphStorage):
@@ -78,48 +78,48 @@ class EntityReader:
 
     def get_all_nodes(self, graph_id: str) -> List[Dict[str, Any]]:
         """
-        Get all nodes from the graph.
+        Alle Knoten aus dem Graph abrufen.
 
         Args:
-            graph_id: Graph ID
+            graph_id: Graph-ID
 
         Returns:
-            List of nodes.
+            Liste von Knoten.
         """
-        logger.info(f"Getting all nodes in graph {graph_id}...")
+        logger.info(f"Rufe alle Knoten im Graph {graph_id} ab...")
         nodes = self.storage.get_all_nodes(graph_id)
-        logger.info(f"Got {len(nodes)} nodes total")
+        logger.info(f"{len(nodes)} Knoten insgesamt abgerufen")
         return nodes
 
     def get_all_edges(self, graph_id: str) -> List[Dict[str, Any]]:
         """
-        Get all edges from the graph.
+        Alle Kanten aus dem Graph abrufen.
 
         Args:
-            graph_id: Graph ID
+            graph_id: Graph-ID
 
         Returns:
-            List of edges.
+            Liste von Kanten.
         """
-        logger.info(f"Getting all edges in graph {graph_id}...")
+        logger.info(f"Rufe alle Kanten im Graph {graph_id} ab...")
         edges = self.storage.get_all_edges(graph_id)
-        logger.info(f"Got {len(edges)} edges total")
+        logger.info(f"{len(edges)} Kanten insgesamt abgerufen")
         return edges
 
     def get_node_edges(self, node_uuid: str) -> List[Dict[str, Any]]:
         """
-        Get all related edges for a specified node.
+        Alle zugehörigen Kanten für einen bestimmten Knoten abrufen.
 
         Args:
-            node_uuid: Node UUID
+            node_uuid: Knoten-UUID
 
         Returns:
-            List of edges.
+            Liste von Kanten.
         """
         try:
             return self.storage.get_node_edges(node_uuid)
         except Exception as e:
-            logger.warning(f"Failed to get edges for node {node_uuid}: {str(e)}")
+            logger.warning(f"Fehler beim Abrufen der Kanten für Knoten {node_uuid}: {str(e)}")
             return []
 
     def filter_defined_entities(
@@ -129,47 +129,47 @@ class EntityReader:
         enrich_with_edges: bool = True
     ) -> FilteredEntities:
         """
-        Filter and extract nodes with meaningful entity types.
+        Knoten mit aussagekräftigen Entitätstypen filtern und extrahieren.
 
-        Filtering logic:
-        - If a node's labels only include "Entity", it has no meaningful type and is skipped.
-        - If a node's labels include labels other than "Entity" and "Node", it has a meaningful type and is kept.
+        Filterlogik:
+        - Wenn die Labels eines Knotens nur "Entity" enthalten, hat er keinen aussagekräftigen Typ und wird übersprungen.
+        - Wenn die Labels eines Knotens andere Labels als "Entity" und "Node" enthalten, hat er einen aussagekräftigen Typ und wird beibehalten.
 
         Args:
-            graph_id: Graph ID
-            defined_entity_types: Optional list of entity types to filter for. If provided, only entities matching one of these types are kept.
-            enrich_with_edges: Whether to fetch each entity's related edge information.
+            graph_id: Graph-ID
+            defined_entity_types: Optionale Liste von Entitätstypen zum Filtern. Wenn angegeben, werden nur Entitäten beibehalten, die einem dieser Typen entsprechen.
+            enrich_with_edges: Ob zugehörige Kanteninformationen für jede Entität abgerufen werden sollen.
 
         Returns:
-            FilteredEntities: Filtered entity collection.
+            FilteredEntities: Gefilterte Entitätssammlung.
         """
-        logger.info(f"Starting to filter entities in graph {graph_id}...")
+        logger.info(f"Starte Filterung von Entitäten im Graph {graph_id}...")
 
-        # Get all nodes
+        # Alle Knoten abrufen
         all_nodes = self.get_all_nodes(graph_id)
         total_count = len(all_nodes)
 
-        # Get all edges (for subsequent association lookup)
+        # Alle Kanten abrufen (für nachfolgende Zuordnungssuche)
         all_edges = self.get_all_edges(graph_id) if enrich_with_edges else []
 
-        # Build mapping from node UUID to node data
+        # Zuordnung von Knoten-UUID zu Knotendaten erstellen
         node_map = {n["uuid"]: n for n in all_nodes}
 
-        # Filter entities matching criteria
+        # Entitäten filtern, die den Kriterien entsprechen
         filtered_entities = []
         entity_types_found: Set[str] = set()
 
         for node in all_nodes:
             labels = node.get("labels", [])
 
-            # Filter logic: Labels must contain labels besides "Entity" and "Node"
+            # Filterlogik: Labels müssen Labels außer "Entity" und "Node" enthalten
             custom_labels = [la for la in labels if la not in ["Entity", "Node"]]
 
             if not custom_labels:
-                # Only default labels, skip
+                # Nur Standard-Labels, überspringen
                 continue
 
-            # If predefined types specified, check if matching
+            # Wenn vordefinierte Typen angegeben, prüfen ob übereinstimmend
             if defined_entity_types:
                 matching_labels = [la for la in custom_labels if la in defined_entity_types]
                 if not matching_labels:
@@ -180,7 +180,7 @@ class EntityReader:
 
             entity_types_found.add(entity_type)
 
-            # Create entity node object
+            # Entitätsknoten-Objekt erstellen
             entity = EntityNode(
                 uuid=node["uuid"],
                 name=node["name"],
@@ -189,7 +189,7 @@ class EntityReader:
                 attributes=node.get("attributes", {}),
             )
 
-            # Get related edges and nodes
+            # Zugehörige Kanten und Knoten abrufen
             if enrich_with_edges:
                 related_edges = []
                 related_node_uuids: Set[str] = set()
@@ -214,7 +214,7 @@ class EntityReader:
 
                 entity.related_edges = related_edges
 
-                # Get related linked nodes with their information
+                # Zugehörige verknüpfte Knoten mit ihren Informationen abrufen
                 related_nodes = []
                 for related_uuid in related_node_uuids:
                     if related_uuid in node_map:
@@ -230,8 +230,8 @@ class EntityReader:
 
             filtered_entities.append(entity)
 
-        logger.info(f"Filter completed: total nodes {total_count}, matched {len(filtered_entities)}, "
-                     f"entity types: {entity_types_found}")
+        logger.info(f"Filterung abgeschlossen: Knoten gesamt {total_count}, gefiltert {len(filtered_entities)}, "
+                     f"Entitätstypen: {entity_types_found}")
 
         return FilteredEntities(
             entities=filtered_entities,
@@ -246,28 +246,28 @@ class EntityReader:
         entity_uuid: str
     ) -> Optional[EntityNode]:
         """
-        Get a single entity with its complete context (edges and related nodes).
+        Eine einzelne Entität mit ihrem vollständigen Kontext (Kanten und zugehörige Knoten) abrufen.
 
-        Optimized: uses get_node() + get_node_edges() instead of loading ALL nodes.
-        Only fetches related nodes individually as needed.
+        Optimiert: Verwendet get_node() + get_node_edges() anstatt ALLE Knoten zu laden.
+        Ruft zugehörige Knoten nur einzeln nach Bedarf ab.
 
         Args:
-            graph_id: Graph ID
-            entity_uuid: Entity UUID
+            graph_id: Graph-ID
+            entity_uuid: Entitäts-UUID
 
         Returns:
-            EntityNode or None.
+            EntityNode oder None.
         """
         try:
-            # Get the node directly by UUID (O(1) lookup)
+            # Knoten direkt über UUID abrufen (O(1)-Suche)
             node = self.storage.get_node(entity_uuid)
             if not node:
                 return None
 
-            # Get edges for this node (O(degree) via Cypher)
+            # Kanten für diesen Knoten abrufen (O(Grad) über Cypher)
             edges = self.storage.get_node_edges(entity_uuid)
 
-            # Process related edges and collect related node UUIDs
+            # Zugehörige Kanten verarbeiten und zugehörige Knoten-UUIDs sammeln
             related_edges = []
             related_node_uuids: Set[str] = set()
 
@@ -289,7 +289,7 @@ class EntityReader:
                     })
                     related_node_uuids.add(edge["source_node_uuid"])
 
-            # Fetch related nodes individually (avoids loading ALL nodes)
+            # Zugehörige Knoten einzeln abrufen (vermeidet das Laden ALLER Knoten)
             related_nodes = []
             for related_uuid in related_node_uuids:
                 related_node = self.storage.get_node(related_uuid)
@@ -312,7 +312,7 @@ class EntityReader:
             )
 
         except Exception as e:
-            logger.error(f"Failed to get entity {entity_uuid}: {str(e)}")
+            logger.error(f"Fehler beim Abrufen der Entität {entity_uuid}: {str(e)}")
             return None
 
     def get_entities_by_type(
@@ -322,15 +322,15 @@ class EntityReader:
         enrich_with_edges: bool = True
     ) -> List[EntityNode]:
         """
-        Get all entities of a specified type.
+        Alle Entitäten eines bestimmten Typs abrufen.
 
         Args:
-            graph_id: Graph ID
-            entity_type: Entity type (e.g., "Student", "PublicFigure", etc.)
-            enrich_with_edges: Whether to fetch each entity's related edge information.
+            graph_id: Graph-ID
+            entity_type: Entitätstyp (z.B. "Student", "PublicFigure" usw.)
+            enrich_with_edges: Ob zugehörige Kanteninformationen für jede Entität abgerufen werden sollen.
 
         Returns:
-            List of entities of the specified type.
+            Liste von Entitäten des angegebenen Typs.
         """
         result = self.filter_defined_entities(
             graph_id=graph_id,

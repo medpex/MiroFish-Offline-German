@@ -1,6 +1,6 @@
 """
-Ontology generation service
-Interface 1: Analyze text content and generate entity and relationship type definitions suitable for social simulation
+Ontologie-Generierungsdienst
+Schnittstelle 1: Textinhalt analysieren und Entitäts- sowie Beziehungstypdefinitionen generieren, die für die soziale Simulation geeignet sind
 """
 
 import json
@@ -8,157 +8,157 @@ from typing import Dict, Any, List, Optional
 from ..utils.llm_client import LLMClient
 
 
-# System prompt for ontology generation
-ONTOLOGY_SYSTEM_PROMPT = """You are a professional knowledge graph ontology design expert. Your task is to analyze given text content and simulation requirements, and design entity types and relationship types suitable for **social media opinion simulation**.
+# System-Prompt für die Ontologie-Generierung
+ONTOLOGY_SYSTEM_PROMPT = """Sie sind ein professioneller Experte für Wissensgraph-Ontologie-Design. Ihre Aufgabe ist es, gegebene Textinhalte und Simulationsanforderungen zu analysieren und Entitätstypen sowie Beziehungstypen zu entwerfen, die für die **Simulation von Meinungsbildung in sozialen Medien** geeignet sind.
 
-**Important: You must output valid JSON format data, do not output anything else.**
+**Wichtig: Sie müssen gültige JSON-Format-Daten ausgeben, geben Sie nichts anderes aus.**
 
-## Core Task Background
+## Kernaufgabe – Hintergrund
 
-We are building a **social media opinion simulation system**. In this system:
-- Each entity is an "account" or "subject" that can voice, interact, and spread information on social media
-- Entities influence each other, retweet, comment, and respond
-- We need to simulate the reactions of various parties in opinion events and information dissemination paths
+Wir erstellen ein **System zur Simulation von Meinungsbildung in sozialen Medien**. In diesem System:
+- Jede Entität ist ein „Konto" oder „Subjekt", das in sozialen Medien Meinungen äußern, interagieren und Informationen verbreiten kann
+- Entitäten beeinflussen sich gegenseitig, teilen Beiträge, kommentieren und antworten
+- Wir müssen die Reaktionen verschiedener Parteien bei Meinungsereignissen und Informationsverbreitungswege simulieren
 
-Therefore, **entities must be real-world entities that can voice and interact on social media**:
+Daher **müssen Entitäten reale Akteure sein, die in sozialen Medien Meinungen äußern und interagieren können**:
 
-**Can be**:
-- Specific individuals (public figures, stakeholders, opinion leaders, experts, ordinary people)
-- Companies and enterprises (including their official accounts)
-- Organizations (universities, associations, NGOs, unions, etc.)
-- Government departments and regulatory agencies
-- Media institutions (newspapers, TV stations, self-media, websites)
-- Social media platforms themselves
-- Specific group representatives (such as alumni associations, fan groups, rights protection groups, etc.)
+**Zulässig**:
+- Bestimmte Einzelpersonen (öffentliche Persönlichkeiten, Interessenvertreter, Meinungsführer, Experten, gewöhnliche Menschen)
+- Unternehmen und Firmen (einschließlich ihrer offiziellen Konten)
+- Organisationen (Universitäten, Verbände, NGOs, Gewerkschaften usw.)
+- Regierungsbehörden und Aufsichtsbehörden
+- Medieninstitutionen (Zeitungen, Fernsehsender, Influencer-Medien, Websites)
+- Social-Media-Plattformen selbst
+- Spezifische Gruppenvertreter (wie Alumni-Vereinigungen, Fangruppen, Interessengruppen usw.)
 
-**Cannot be**:
-- Abstract concepts (such as "public opinion", "emotion", "trend")
-- Topics/subjects (such as "academic integrity", "education reform")
-- Views/attitudes (such as "supporters", "opponents")
+**Nicht zulässig**:
+- Abstrakte Konzepte (wie „öffentliche Meinung", „Emotion", „Trend")
+- Themen/Gegenstände (wie „akademische Integrität", „Bildungsreform")
+- Ansichten/Haltungen (wie „Befürworter", „Gegner")
 
-## Output Format
+## Ausgabeformat
 
-Please output JSON format with the following structure:
+Bitte geben Sie JSON im folgenden Format aus:
 
 ```json
 {
     "entity_types": [
         {
-            "name": "Entity type name (English, PascalCase)",
-            "description": "Brief description (English, no more than 100 characters)",
+            "name": "Entitätstypname (Englisch, PascalCase)",
+            "description": "Kurzbeschreibung (Englisch, maximal 100 Zeichen)",
             "attributes": [
                 {
-                    "name": "Attribute name (English, snake_case)",
+                    "name": "Attributname (Englisch, snake_case)",
                     "type": "text",
-                    "description": "Attribute description"
+                    "description": "Attributbeschreibung"
                 }
             ],
-            "examples": ["Example entity 1", "Example entity 2"]
+            "examples": ["Beispielentität 1", "Beispielentität 2"]
         }
     ],
     "edge_types": [
         {
-            "name": "Relationship type name (English, UPPER_SNAKE_CASE)",
-            "description": "Brief description (English, no more than 100 characters)",
+            "name": "Beziehungstypname (Englisch, UPPER_SNAKE_CASE)",
+            "description": "Kurzbeschreibung (Englisch, maximal 100 Zeichen)",
             "source_targets": [
-                {"source": "Source entity type", "target": "Target entity type"}
+                {"source": "Quellentitätstyp", "target": "Zielentitätstyp"}
             ],
             "attributes": []
         }
     ],
-    "analysis_summary": "Brief analysis and explanation of text content"
+    "analysis_summary": "Kurze Analyse und Erläuterung des Textinhalts"
 }
 ```
 
-## Design Guidelines (Extremely Important!)
+## Designrichtlinien (Äußerst wichtig!)
 
-### 1. Entity Type Design - Must Strictly Follow
+### 1. Entitätstyp-Design – Strikt zu befolgen
 
-**Quantity requirement: Must have exactly 10 entity types**
+**Mengenanforderung: Es müssen genau 10 Entitätstypen vorhanden sein**
 
-**Hierarchical structure requirement (must include both specific types and fallback types)**:
+**Hierarchische Strukturanforderung (muss sowohl spezifische Typen als auch Fallback-Typen enthalten)**:
 
-Your 10 entity types must include the following hierarchy:
+Ihre 10 Entitätstypen müssen die folgende Hierarchie umfassen:
 
-A. **Fallback types (must include, place in last 2 of list)**:
-   - `Person`: Fallback type for any natural person. When a person does not fit other more specific person types, use this.
-   - `Organization`: Fallback type for any organization. When an organization does not fit other more specific organization types, use this.
+A. **Fallback-Typen (müssen enthalten sein, an den letzten 2 Positionen der Liste)**:
+   - `Person`: Fallback-Typ für jede natürliche Person. Wenn eine Person nicht zu anderen spezifischeren Personentypen passt, verwenden Sie diesen.
+   - `Organization`: Fallback-Typ für jede Organisation. Wenn eine Organisation nicht zu anderen spezifischeren Organisationstypen passt, verwenden Sie diesen.
 
-B. **Specific types (8, designed based on text content)**:
-   - Design more specific types for main characters appearing in the text
-   - Example: If text involves academic events, can have `Student`, `Professor`, `University`
-   - Example: If text involves business events, can have `Company`, `CEO`, `Employee`
+B. **Spezifische Typen (8, basierend auf dem Textinhalt entworfen)**:
+   - Entwerfen Sie spezifischere Typen für die im Text vorkommenden Hauptfiguren
+   - Beispiel: Wenn der Text akademische Ereignisse betrifft, können `Student`, `Professor`, `University` verwendet werden
+   - Beispiel: Wenn der Text geschäftliche Ereignisse betrifft, können `Company`, `CEO`, `Employee` verwendet werden
 
-**Why fallback types are needed**:
-- Various people will appear in the text, such as "primary/secondary teachers", "random person", "some netizen"
-- If no specific type matches, they should be classified as `Person`
-- Similarly, small organizations and temporary groups should be classified as `Organization`
+**Warum Fallback-Typen benötigt werden**:
+- Im Text erscheinen verschiedene Personen, wie „Lehrer", „zufällige Person", „ein Internetnutzer"
+- Wenn kein spezifischer Typ passt, sollten sie als `Person` klassifiziert werden
+- Ebenso sollten kleine Organisationen und temporäre Gruppen als `Organization` klassifiziert werden
 
-**Design principles for specific types**:
-- Identify high-frequency or key role types from the text
-- Each specific type should have clear boundaries, avoid overlap
-- Description must clearly explain the difference between this type and the fallback type
+**Designprinzipien für spezifische Typen**:
+- Identifizieren Sie häufig vorkommende oder Schlüsselrollentypen aus dem Text
+- Jeder spezifische Typ sollte klare Grenzen haben, Überschneidungen vermeiden
+- Die Beschreibung muss den Unterschied zwischen diesem Typ und dem Fallback-Typ klar erklären
 
-### 2. Relationship Type Design
+### 2. Beziehungstyp-Design
 
-- Quantity: 6-10
-- Relationships should reflect real connections in social media interactions
-- Ensure relationship source_targets cover your defined entity types
+- Menge: 6-10
+- Beziehungen sollten reale Verbindungen in Social-Media-Interaktionen widerspiegeln
+- Stellen Sie sicher, dass die Beziehungs-source_targets Ihre definierten Entitätstypen abdecken
 
-### 3. Attribute Design
+### 3. Attribut-Design
 
-- 1-3 key attributes per entity type
-- **Note**: Attribute names cannot use `name`, `uuid`, `group_id`, `created_at`, `summary` (these are system reserved words)
-- Recommended: `full_name`, `title`, `role`, `position`, `location`, `description`, etc.
+- 1-3 Schlüsselattribute pro Entitätstyp
+- **Hinweis**: Attributnamen dürfen nicht `name`, `uuid`, `group_id`, `created_at`, `summary` verwenden (dies sind vom System reservierte Wörter)
+- Empfohlen: `full_name`, `title`, `role`, `position`, `location`, `description` usw.
 
-## Entity Type Reference
+## Entitätstyp-Referenz
 
-**Individual types (specific)**:
-- Student: Student
-- Professor: Professor/Scholar
-- Journalist: Journalist
-- Celebrity: Celebrity/Internet celebrity
-- Executive: Executive
-- Official: Government official
-- Lawyer: Lawyer
-- Doctor: Doctor
+**Einzelpersonentypen (spezifisch)**:
+- Student: Student/Studentin
+- Professor: Professor/Wissenschaftler
+- Journalist: Journalist/Journalistin
+- Celebrity: Prominente/Internet-Prominenz
+- Executive: Führungskraft
+- Official: Regierungsbeamter
+- Lawyer: Rechtsanwalt/Rechtsanwältin
+- Doctor: Arzt/Ärztin
 
-**Individual types (fallback)**:
-- Person: Any natural person (use when not fitting other specific types)
+**Einzelpersonentypen (Fallback)**:
+- Person: Jede natürliche Person (verwenden, wenn sie nicht zu anderen spezifischen Typen passt)
 
-**Organization types (specific)**:
-- University: University
-- Company: Company/Enterprise
-- GovernmentAgency: Government agency
-- MediaOutlet: Media institution
-- Hospital: Hospital
-- School: Primary/Secondary school
-- NGO: Non-governmental organization
+**Organisationstypen (spezifisch)**:
+- University: Universität
+- Company: Unternehmen/Firma
+- GovernmentAgency: Regierungsbehörde
+- MediaOutlet: Medieninstitution
+- Hospital: Krankenhaus
+- School: Grund-/Sekundarschule
+- NGO: Nichtregierungsorganisation
 
-**Organization types (fallback)**:
-- Organization: Any organization (use when not fitting other specific types)
+**Organisationstypen (Fallback)**:
+- Organization: Jede Organisation (verwenden, wenn sie nicht zu anderen spezifischen Typen passt)
 
-## Relationship Type Reference
+## Beziehungstyp-Referenz
 
-- WORKS_FOR: Works for
-- STUDIES_AT: Studies at
-- AFFILIATED_WITH: Affiliated with
-- REPRESENTS: Represents
-- REGULATES: Regulates
-- REPORTS_ON: Reports on
-- COMMENTS_ON: Comments on
-- RESPONDS_TO: Responds to
-- SUPPORTS: Supports
-- OPPOSES: Opposes
-- COLLABORATES_WITH: Collaborates with
-- COMPETES_WITH: Competes with
+- WORKS_FOR: Arbeitet für
+- STUDIES_AT: Studiert an
+- AFFILIATED_WITH: Zugehörig zu
+- REPRESENTS: Vertritt
+- REGULATES: Reguliert
+- REPORTS_ON: Berichtet über
+- COMMENTS_ON: Kommentiert
+- RESPONDS_TO: Antwortet auf
+- SUPPORTS: Unterstützt
+- OPPOSES: Widerspricht
+- COLLABORATES_WITH: Arbeitet zusammen mit
+- COMPETES_WITH: Konkurriert mit
 """
 
 
 class OntologyGenerator:
     """
-    Ontology generator
-    Analyze text content and generate entity and relationship type definitions
+    Ontologie-Generator
+    Textinhalt analysieren und Entitäts- sowie Beziehungstypdefinitionen generieren
     """
 
     def __init__(self, llm_client: Optional[LLMClient] = None):
@@ -171,17 +171,17 @@ class OntologyGenerator:
         additional_context: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Generate ontology definition
+        Ontologie-Definition generieren
 
         Args:
-            document_texts: List of document texts
-            simulation_requirement: Description of simulation requirements
-            additional_context: Additional context
+            document_texts: Liste der Dokumenttexte
+            simulation_requirement: Beschreibung der Simulationsanforderungen
+            additional_context: Zusätzlicher Kontext
 
         Returns:
-            Ontology definition (entity_types, edge_types, etc.)
+            Ontologie-Definition (entity_types, edge_types usw.)
         """
-        # Build user message
+        # Benutzernachricht erstellen
         user_message = self._build_user_message(
             document_texts,
             simulation_requirement,
@@ -193,19 +193,19 @@ class OntologyGenerator:
             {"role": "user", "content": user_message}
         ]
 
-        # Call LLM
+        # LLM aufrufen
         result = self.llm_client.chat_json(
             messages=messages,
             temperature=0.3,
             max_tokens=4096
         )
 
-        # Validate and post-process
+        # Validieren und nachbearbeiten
         result = self._validate_and_process(result)
 
         return result
 
-    # Maximum text length for LLM (50,000 characters)
+    # Maximale Textlänge für LLM (50.000 Zeichen)
     MAX_TEXT_LENGTH_FOR_LLM = 50000
 
     def _build_user_message(
@@ -214,50 +214,50 @@ class OntologyGenerator:
         simulation_requirement: str,
         additional_context: Optional[str]
     ) -> str:
-        """Build user message"""
+        """Benutzernachricht erstellen"""
 
-        # Combine texts
+        # Texte zusammenführen
         combined_text = "\n\n---\n\n".join(document_texts)
         original_length = len(combined_text)
 
-        # If text exceeds 50,000 characters, truncate (only affects LLM input, not graph construction)
+        # Wenn der Text 50.000 Zeichen überschreitet, kürzen (betrifft nur LLM-Eingabe, nicht die Graph-Konstruktion)
         if len(combined_text) > self.MAX_TEXT_LENGTH_FOR_LLM:
             combined_text = combined_text[:self.MAX_TEXT_LENGTH_FOR_LLM]
-            combined_text += f"\n\n...(Original text has {original_length} characters, first {self.MAX_TEXT_LENGTH_FOR_LLM} characters extracted for ontology analysis)..."
+            combined_text += f"\n\n...(Originaltext hat {original_length} Zeichen, die ersten {self.MAX_TEXT_LENGTH_FOR_LLM} Zeichen wurden für die Ontologie-Analyse extrahiert)..."
 
-        message = f"""## Simulation Requirements
+        message = f"""## Simulationsanforderungen
 
 {simulation_requirement}
 
-## Document Content
+## Dokumentinhalt
 
 {combined_text}
 """
 
         if additional_context:
             message += f"""
-## Additional Explanation
+## Zusätzliche Erläuterung
 
 {additional_context}
 """
 
         message += """
-Based on the above content, design entity types and relationship types suitable for social opinion simulation.
+Entwerfen Sie basierend auf dem obigen Inhalt Entitätstypen und Beziehungstypen, die für die Simulation der Meinungsbildung in sozialen Medien geeignet sind.
 
-**Rules to follow**:
-1. Must output exactly 10 entity types
-2. Last 2 must be fallback types: Person (individual fallback) and Organization (organization fallback)
-3. First 8 are specific types designed based on text content
-4. All entity types must be real-world subjects that can voice opinions, not abstract concepts
-5. Attribute names cannot use reserved words like name, uuid, group_id, use full_name, org_name, etc. instead
+**Zu befolgende Regeln**:
+1. Es müssen genau 10 Entitätstypen ausgegeben werden
+2. Die letzten 2 müssen Fallback-Typen sein: Person (Einzelperson-Fallback) und Organization (Organisation-Fallback)
+3. Die ersten 8 sind spezifische Typen, die basierend auf dem Textinhalt entworfen werden
+4. Alle Entitätstypen müssen reale Subjekte sein, die Meinungen äußern können, keine abstrakten Konzepte
+5. Attributnamen dürfen keine reservierten Wörter wie name, uuid, group_id verwenden, verwenden Sie stattdessen full_name, org_name usw.
 """
 
         return message
-    
-    def _validate_and_process(self, result: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate and post-process result"""
 
-        # Ensure necessary fields exist
+    def _validate_and_process(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Ergebnis validieren und nachbearbeiten"""
+
+        # Sicherstellen, dass notwendige Felder vorhanden sind
         if "entity_types" not in result:
             result["entity_types"] = []
         if "edge_types" not in result:
@@ -265,17 +265,17 @@ Based on the above content, design entity types and relationship types suitable 
         if "analysis_summary" not in result:
             result["analysis_summary"] = ""
 
-        # Validate entity types
+        # Entitätstypen validieren
         for entity in result["entity_types"]:
             if "attributes" not in entity:
                 entity["attributes"] = []
             if "examples" not in entity:
                 entity["examples"] = []
-            # Ensure description doesn't exceed 100 characters
+            # Sicherstellen, dass die Beschreibung 100 Zeichen nicht überschreitet
             if len(entity.get("description", "")) > 100:
                 entity["description"] = entity["description"][:97] + "..."
 
-        # Validate relationship types
+        # Beziehungstypen validieren
         for edge in result["edge_types"]:
             if "source_targets" not in edge:
                 edge["source_targets"] = []
@@ -284,37 +284,37 @@ Based on the above content, design entity types and relationship types suitable 
             if len(edge.get("description", "")) > 100:
                 edge["description"] = edge["description"][:97] + "..."
 
-        # Zep API limit: maximum 10 custom entity types, maximum 10 custom edge types
+        # Zep-API-Limit: maximal 10 benutzerdefinierte Entitätstypen, maximal 10 benutzerdefinierte Edge-Typen
         MAX_ENTITY_TYPES = 10
         MAX_EDGE_TYPES = 10
 
-        # Fallback type definitions
+        # Fallback-Typdefinitionen
         person_fallback = {
             "name": "Person",
             "description": "Any individual person not fitting other specific person types.",
             "attributes": [
-                {"name": "full_name", "type": "text", "description": "Full name of the person"},
-                {"name": "role", "type": "text", "description": "Role or occupation"}
+                {"name": "full_name", "type": "text", "description": "Vollständiger Name der Person"},
+                {"name": "role", "type": "text", "description": "Rolle oder Beruf"}
             ],
-            "examples": ["ordinary citizen", "anonymous netizen"]
+            "examples": ["gewöhnlicher Bürger", "anonymer Internetnutzer"]
         }
 
         organization_fallback = {
             "name": "Organization",
             "description": "Any organization not fitting other specific organization types.",
             "attributes": [
-                {"name": "org_name", "type": "text", "description": "Name of the organization"},
-                {"name": "org_type", "type": "text", "description": "Type of organization"}
+                {"name": "org_name", "type": "text", "description": "Name der Organisation"},
+                {"name": "org_type", "type": "text", "description": "Art der Organisation"}
             ],
-            "examples": ["small business", "community group"]
+            "examples": ["Kleinunternehmen", "Gemeinschaftsgruppe"]
         }
 
-        # Check if fallback types already exist
+        # Prüfen, ob Fallback-Typen bereits vorhanden sind
         entity_names = {e["name"] for e in result["entity_types"]}
         has_person = "Person" in entity_names
         has_organization = "Organization" in entity_names
 
-        # Fallback types to add
+        # Hinzuzufügende Fallback-Typen
         fallbacks_to_add = []
         if not has_person:
             fallbacks_to_add.append(person_fallback)
@@ -325,17 +325,17 @@ Based on the above content, design entity types and relationship types suitable 
             current_count = len(result["entity_types"])
             needed_slots = len(fallbacks_to_add)
 
-            # If adding would exceed 10, need to remove some existing types
+            # Wenn das Hinzufügen 10 überschreiten würde, müssen einige vorhandene Typen entfernt werden
             if current_count + needed_slots > MAX_ENTITY_TYPES:
-                # Calculate how many to remove
+                # Berechnen, wie viele entfernt werden müssen
                 to_remove = current_count + needed_slots - MAX_ENTITY_TYPES
-                # Remove from end (keep more important specific types in front)
+                # Vom Ende entfernen (wichtigere spezifische Typen vorne behalten)
                 result["entity_types"] = result["entity_types"][:-to_remove]
 
-            # Add fallback types
+            # Fallback-Typen hinzufügen
             result["entity_types"].extend(fallbacks_to_add)
 
-        # Final check to ensure limits not exceeded (defensive programming)
+        # Abschließende Prüfung, um sicherzustellen, dass Limits nicht überschritten werden (defensive Programmierung)
         if len(result["entity_types"]) > MAX_ENTITY_TYPES:
             result["entity_types"] = result["entity_types"][:MAX_ENTITY_TYPES]
 
@@ -343,28 +343,28 @@ Based on the above content, design entity types and relationship types suitable 
             result["edge_types"] = result["edge_types"][:MAX_EDGE_TYPES]
 
         return result
-    
+
     def generate_python_code(self, ontology: Dict[str, Any]) -> str:
         """
-        [DEPRECATED] Convert ontology definition to Zep-format Pydantic code.
-        Not used in MiroFish-Offline (ontology stored as JSON in Neo4j).
-        Kept for reference only.
+        [VERALTET] Ontologie-Definition in Zep-Format-Pydantic-Code konvertieren.
+        Wird in MiroFish-Offline nicht verwendet (Ontologie wird als JSON in Neo4j gespeichert).
+        Nur als Referenz beibehalten.
         """
         code_lines = [
             '"""',
-            'Custom entity type definitions',
-            'Auto-generated by MiroFish for social opinion simulation',
+            'Benutzerdefinierte Entitätstyp-Definitionen',
+            'Automatisch generiert von MiroFish für die Simulation der Meinungsbildung in sozialen Medien',
             '"""',
             '',
             'from pydantic import Field',
             'from zep_cloud.external_clients.ontology import EntityModel, EntityText, EdgeModel',
             '',
             '',
-            '# ============== Entity Type Definitions ==============',
+            '# ============== Entitätstyp-Definitionen ==============',
             '',
         ]
 
-        # Generate entity types
+        # Entitätstypen generieren
         for entity in ontology.get("entity_types", []):
             name = entity["name"]
             desc = entity.get("description", f"A {name} entity.")
@@ -387,13 +387,13 @@ Based on the above content, design entity types and relationship types suitable 
             code_lines.append('')
             code_lines.append('')
 
-        code_lines.append('# ============== Relationship Type Definitions ==============')
+        code_lines.append('# ============== Beziehungstyp-Definitionen ==============')
         code_lines.append('')
 
-        # Generate relationship types
+        # Beziehungstypen generieren
         for edge in ontology.get("edge_types", []):
             name = edge["name"]
-            # Convert to PascalCase class name
+            # In PascalCase-Klassennamen konvertieren
             class_name = ''.join(word.capitalize() for word in name.split('_'))
             desc = edge.get("description", f"A {name} relationship.")
 
@@ -415,8 +415,8 @@ Based on the above content, design entity types and relationship types suitable 
             code_lines.append('')
             code_lines.append('')
 
-        # Generate type dictionaries
-        code_lines.append('# ============== Type Configuration ==============')
+        # Typ-Wörterbücher generieren
+        code_lines.append('# ============== Typ-Konfiguration ==============')
         code_lines.append('')
         code_lines.append('ENTITY_TYPES = {')
         for entity in ontology.get("entity_types", []):
@@ -432,7 +432,7 @@ Based on the above content, design entity types and relationship types suitable 
         code_lines.append('}')
         code_lines.append('')
 
-        # Generate source_targets mapping for edges
+        # source_targets-Zuordnung für Edges generieren
         code_lines.append('EDGE_SOURCE_TARGETS = {')
         for edge in ontology.get("edge_types", []):
             name = edge["name"]
@@ -446,4 +446,3 @@ Based on the above content, design entity types and relationship types suitable 
         code_lines.append('}')
 
         return '\n'.join(code_lines)
-

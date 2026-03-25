@@ -8,7 +8,7 @@
           <!-- Report Header -->
           <div class="report-header-block">
             <div class="report-meta">
-              <span class="report-tag">Prediction Report</span>
+              <span class="report-tag">Vorhersagebericht</span>
               <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
             </div>
             <h1 class="main-title">{{ reportOutline.title }}</h1>
@@ -85,8 +85,8 @@
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
           <div class="action-bar-text">
-            <span class="action-bar-title">Interactive Tools</span>
-            <span class="action-bar-subtitle mono">{{ profiles.length }} agents available</span>
+            <span class="action-bar-title">Interaktive Werkzeuge</span>
+            <span class="action-bar-subtitle mono">{{ profiles.length }} Agenten verfügbar</span>
           </div>
         </div>
           <div class="action-bar-tabs">
@@ -98,7 +98,7 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
               </svg>
-              <span>Chat with Report Agent</span>
+              <span>Chat mit Berichts-Agent</span>
             </button>
             <div class="agent-dropdown" v-if="profiles.length > 0">
               <button 
@@ -110,13 +110,13 @@
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                <span>{{ selectedAgent ? selectedAgent.username : 'Chat with any individual' }}</span>
+                <span>{{ selectedAgent ? selectedAgent.username : 'Chat mit einem Individuum' }}</span>
                 <svg class="dropdown-arrow" :class="{ open: showAgentDropdown }" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </button>
               <div v-if="showAgentDropdown" class="dropdown-menu">
-                <div class="dropdown-header">Select conversation target</div>
+                <div class="dropdown-header">Gesprächspartner auswählen</div>
                 <div 
                   v-for="(agent, idx) in profiles" 
                   :key="idx"
@@ -126,7 +126,7 @@
                   <div class="agent-avatar">{{ (agent.username || 'A')[0] }}</div>
                   <div class="agent-info">
                     <span class="agent-name">{{ agent.username }}</span>
-                    <span class="agent-role">{{ agent.profession || 'Unknown profession' }}</span>
+                    <span class="agent-role">{{ agent.profession || 'Unbekannter Beruf' }}</span>
                   </div>
                 </div>
               </div>
@@ -141,7 +141,7 @@
                 <path d="M9 11l3 3L22 4"></path>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
               </svg>
-              <span>Send survey to the world</span>
+              <span>Umfrage an die Welt senden</span>
             </button>
           </div>
         </div>
@@ -154,8 +154,8 @@
             <div class="tools-card-header">
               <div class="tools-card-avatar">R</div>
               <div class="tools-card-info">
-                <div class="tools-card-name">Report Agent - Chat</div>
-                <div class="tools-card-subtitle">Quick chat version of Report Agent with 4 professional tools, has MiroFish's full memory</div>
+                <div class="tools-card-name">Berichts-Agent – Chat</div>
+                <div class="tools-card-subtitle">Schnelle Chat-Version des Berichts-Agenten mit 4 professionellen Werkzeugen und vollem MiroFish-Gedächtnis</div>
               </div>
               <button class="tools-card-toggle" @click="showToolsDetail = !showToolsDetail">
                 <svg :class="{ 'is-expanded': showToolsDetail }" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -172,8 +172,8 @@
                     </svg>
                   </div>
                   <div class="tool-content">
-                    <div class="tool-name">InsightForge Deep Attribution</div>
-                    <div class="tool-desc">Aligns real-world seed data with simulation environment state, combines Global/Local Memory mechanisms, provides cross-temporal deep attribution analysis</div>
+                    <div class="tool-name">InsightForge Tiefenattribution</div>
+                    <div class="tool-desc">Gleicht reale Keimdaten mit dem Simulationsumgebungszustand ab, kombiniert Global/Local-Memory-Mechanismen und bietet zeitübergreifende Tiefenattributionsanalyse</div>
                   </div>
                 </div>
                 <div class="tool-item tool-blue">
@@ -184,8 +184,8 @@
                     </svg>
                   </div>
                   <div class="tool-content">
-                    <div class="tool-name">PanoramaSearch Panoramic Tracking</div>
-                    <div class="tool-desc">Graph-based breadth-first traversal algorithm, reconstructs event propagation paths, captures full information flow topology</div>
+                    <div class="tool-name">PanoramaSearch Panoramische Verfolgung</div>
+                    <div class="tool-desc">Graphbasierter Breitensuche-Algorithmus, rekonstruiert Ereignisausbreitungspfade und erfasst die vollständige Informationsfluss-Topologie</div>
                   </div>
                 </div>
                 <div class="tool-item tool-orange">
@@ -195,8 +195,8 @@
                     </svg>
                   </div>
                   <div class="tool-content">
-                    <div class="tool-name">QuickSearch Fast Retrieval</div>
-                    <div class="tool-desc">GraphRAG-based instant query interface, optimized indexing efficiency, for quickly extracting node attributes and discrete facts</div>
+                    <div class="tool-name">QuickSearch Schnellabfrage</div>
+                    <div class="tool-desc">GraphRAG-basierte sofortige Abfrageschnittstelle mit optimierter Indexierungseffizienz zum schnellen Extrahieren von Knotenattributen und diskreten Fakten</div>
                   </div>
                 </div>
                 <div class="tool-item tool-green">
@@ -208,8 +208,8 @@
                     </svg>
                   </div>
                   <div class="tool-content">
-                    <div class="tool-name">InterviewSubAgent Virtual Interview</div>
-                    <div class="tool-desc">Autonomous interview, capable of parallel multi-turn conversations with individuals in simulated world, collects unstructured perspective data and psychological states</div>
+                    <div class="tool-name">InterviewSubAgent Virtuelle Befragung</div>
+                    <div class="tool-desc">Autonome Befragung mit parallelen Mehrrunden-Gesprächen mit Individuen der simulierten Welt, sammelt unstrukturierte Perspektivdaten und psychologische Zustände</div>
                   </div>
                 </div>
               </div>
@@ -224,7 +224,7 @@
                 <div class="profile-card-name">{{ selectedAgent.username }}</div>
                 <div class="profile-card-meta">
                   <span v-if="selectedAgent.name" class="profile-card-handle">@{{ selectedAgent.name }}</span>
-                  <span class="profile-card-profession">{{ selectedAgent.profession || 'Unknown profession' }}</span>
+                  <span class="profile-card-profession">{{ selectedAgent.profession || 'Unbekannter Beruf' }}</span>
                 </div>
               </div>
               <button class="profile-card-toggle" @click="showFullProfile = !showFullProfile">
@@ -235,7 +235,7 @@
             </div>
             <div v-if="showFullProfile && selectedAgent.bio" class="profile-card-body">
               <div class="profile-card-bio">
-                <div class="profile-card-label">Introduction</div>
+                <div class="profile-card-label">Einführung</div>
                 <p>{{ selectedAgent.bio }}</p>
               </div>
             </div>
@@ -250,7 +250,7 @@
                 </svg>
               </div>
               <p class="empty-text">
-                {{ chatTarget === 'report_agent' ? 'Chat with Report Agent to deeply understand report content' : 'Chat with simulated individuals to learn their perspectives' }}
+                {{ chatTarget === 'report_agent' ? 'Chatten Sie mit dem Berichts-Agenten, um den Berichtsinhalt tiefgreifend zu verstehen' : 'Chatten Sie mit simulierten Individuen, um deren Perspektiven kennenzulernen' }}
               </p>
             </div>
             <div 
@@ -266,7 +266,7 @@
               <div class="message-content">
                 <div class="message-header">
                   <span class="sender-name">
-                    {{ msg.role === 'user' ? 'You' : (chatTarget === 'report_agent' ? 'Report Agent' : (selectedAgent?.username || 'Agent')) }}
+                    {{ msg.role === 'user' ? 'Sie' : (chatTarget === 'report_agent' ? 'Berichts-Agent' : (selectedAgent?.username || 'Agent')) }}
                   </span>
                   <span class="message-time">{{ formatTime(msg.timestamp) }}</span>
                 </div>
@@ -292,7 +292,7 @@
             <textarea 
               v-model="chatInput"
               class="chat-input"
-              placeholder="Type your question..."
+              placeholder="Geben Sie Ihre Frage ein..."
               @keydown.enter.exact.prevent="sendMessage"
               :disabled="isSending || (!selectedAgent && chatTarget === 'agent')"
               rows="1"
@@ -317,8 +317,8 @@
           <div class="survey-setup">
             <div class="setup-section">
               <div class="section-header">
-                <span class="section-title">Select survey targets</span>
-                <span class="selection-count">Selected {{ selectedAgents.size }} / {{ profiles.length }}</span>
+                <span class="section-title">Umfrageziele auswählen</span>
+                <span class="selection-count">Ausgewählt {{ selectedAgents.size }} / {{ profiles.length }}</span>
               </div>
               <div class="agents-grid">
                 <label 
@@ -335,7 +335,7 @@
                   <div class="checkbox-avatar">{{ (agent.username || 'A')[0] }}</div>
                   <div class="checkbox-info">
                     <span class="checkbox-name">{{ agent.username }}</span>
-                    <span class="checkbox-role">{{ agent.profession || 'Unknown profession' }}</span>
+                    <span class="checkbox-role">{{ agent.profession || 'Unbekannter Beruf' }}</span>
                   </div>
                   <div class="checkbox-indicator">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3">
@@ -345,20 +345,20 @@
                 </label>
               </div>
               <div class="selection-actions">
-                <button class="action-link" @click="selectAllAgents">Select All</button>
+                <button class="action-link" @click="selectAllAgents">Alle auswählen</button>
                 <span class="action-divider">|</span>
-                <button class="action-link" @click="clearAgentSelection">Clear</button>
+                <button class="action-link" @click="clearAgentSelection">Zurücksetzen</button>
               </div>
             </div>
 
             <div class="setup-section">
               <div class="section-header">
-                <span class="section-title">Survey Question</span>
+                <span class="section-title">Umfragefrage</span>
               </div>
               <textarea 
                 v-model="surveyQuestion"
                 class="survey-input"
-                placeholder="Enter the question you want to ask all selected targets..."
+                placeholder="Geben Sie die Frage ein, die Sie allen ausgewählten Zielen stellen möchten..."
                 rows="3"
               ></textarea>
             </div>
@@ -369,15 +369,15 @@
               @click="submitSurvey"
             >
               <span v-if="isSurveying" class="loading-spinner"></span>
-              <span v-else>Send Survey</span>
+              <span v-else>Umfrage senden</span>
             </button>
           </div>
 
           <!-- Survey Results -->
           <div v-if="surveyResults.length > 0" class="survey-results">
             <div class="results-header">
-              <span class="results-title">Survey Results</span>
-              <span class="results-count">{{ surveyResults.length }} replies</span>
+              <span class="results-title">Umfrageergebnisse</span>
+              <span class="results-count">{{ surveyResults.length }} Antworten</span>
             </div>
             <div class="results-list">
               <div 
@@ -389,7 +389,7 @@
                   <div class="result-avatar">{{ (result.agent_name || 'A')[0] }}</div>
                   <div class="result-info">
                     <span class="result-name">{{ result.agent_name }}</span>
-                    <span class="result-role">{{ result.profession || 'Unknown profession' }}</span>
+                    <span class="result-role">{{ result.profession || 'Unbekannter Beruf' }}</span>
                   </div>
                 </div>
                 <div class="result-question">
@@ -541,7 +541,7 @@ const selectAgent = (agent, idx) => {
 const formatTime = (timestamp) => {
   if (!timestamp) return ''
   try {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
+    return new Date(timestamp).toLocaleTimeString('de-DE', {
       hour12: false, 
       hour: '2-digit', 
       minute: '2-digit'
@@ -665,7 +665,7 @@ const sendMessage = async () => {
     addLog(`Send failed: ${err.message}`)
     chatHistory.value.push({
       role: 'assistant',
-      content: `Sorry, an error occurred: ${err.message}`,
+      content: `Entschuldigung, ein Fehler ist aufgetreten: ${err.message}`,
       timestamp: new Date().toISOString()
     })
   } finally {
@@ -697,18 +697,18 @@ const sendToReportAgent = async (message) => {
   if (res.success && res.data) {
     chatHistory.value.push({
       role: 'assistant',
-      content: res.data.response || res.data.answer || 'No response',
+      content: res.data.response || res.data.answer || 'Keine Antwort',
       timestamp: new Date().toISOString()
     })
     addLog('Report Agent replied')
   } else {
-    throw new Error(res.error || 'Request failed')
+    throw new Error(res.error || 'Anfrage fehlgeschlagen')
   }
 }
 
 const sendToAgent = async (message) => {
   if (!selectedAgent.value || selectedAgentIndex.value === null) {
-    throw new Error('Please select a simulated individual first')
+    throw new Error('Bitte wählen Sie zuerst ein simuliertes Individuum aus')
   }
 
   addLog(`Send to ${selectedAgent.value.username}: ${message.substring(0, 50)}...`)
@@ -763,10 +763,10 @@ const sendToAgent = async (message) => {
       })
       addLog(`${selectedAgent.value.username} replied`)
     } else {
-      throw new Error('No response data')
+      throw new Error('Keine Antwortdaten')
     }
   } else {
-    throw new Error(res.error || 'Request failed')
+    throw new Error(res.error || 'Anfrage fehlgeschlagen')
   }
 }
 
@@ -830,20 +830,20 @@ const submitSurvey = async () => {
         const agent = profiles.value[agentIdx]
 
         // Prefer reddit platform response, then twitter
-        let responseContent = 'No response'
+        let responseContent = 'Keine Antwort'
 
         if (typeof resultsDict === 'object' && !Array.isArray(resultsDict)) {
           const redditKey = `reddit_${agentIdx}`
           const twitterKey = `twitter_${agentIdx}`
           const agentResult = resultsDict[redditKey] || resultsDict[twitterKey]
           if (agentResult) {
-            responseContent = agentResult.response || agentResult.answer || 'No response'
+            responseContent = agentResult.response || agentResult.answer || 'Keine Antwort'
           }
         } else if (Array.isArray(resultsDict)) {
           // Compatible with array format
           const matchedResult = resultsDict.find(r => r.agent_id === agentIdx)
           if (matchedResult) {
-            responseContent = matchedResult.response || matchedResult.answer || 'No response'
+            responseContent = matchedResult.response || matchedResult.answer || 'Keine Antwort'
           }
         }
 
@@ -859,7 +859,7 @@ const submitSurvey = async () => {
       surveyResults.value = surveyResultsList
       addLog(`Received ${surveyResults.value.length} replies`)
     } else {
-      throw new Error(res.error || 'Request failed')
+      throw new Error(res.error || 'Anfrage fehlgeschlagen')
     }
   } catch (err) {
     addLog(`Survey submission failed: ${err.message}`)

@@ -1,11 +1,11 @@
 """
-OASIS Agent Profile Generator
-Convert entities from the knowledge graph to OASIS simulation platform's required Agent Profile format
+OASIS Agent-Profil-Generator
+Entitäten aus dem Wissensgraph in das vom OASIS-Simulationsplattform benötigte Agent-Profil-Format konvertieren
 
-Optimization improvements:
-1. Call knowledge graph retrieval function to enrich node information
-2. Optimize prompts to generate very detailed personas
-3. Distinguish between individual entities and abstract group entities
+Optimierungsverbesserungen:
+1. Wissensgraph-Abruffunktion aufrufen, um Node-Informationen anzureichern
+2. Prompts optimieren, um sehr detaillierte Personas zu generieren
+3. Zwischen individuellen Entitäten und abstrakten Gruppenentitäten unterscheiden
 """
 
 import json
@@ -27,23 +27,23 @@ logger = get_logger('mirofish.oasis_profile')
 
 @dataclass
 class OasisAgentProfile:
-    """OASIS Agent Profile data structure"""
-    # Common fields
+    """OASIS Agent-Profil-Datenstruktur"""
+    # Gemeinsame Felder
     user_id: int
     user_name: str
     name: str
     bio: str
     persona: str
 
-    # Optional fields - Reddit style
+    # Optionale Felder - Reddit-Stil
     karma: int = 1000
 
-    # Optional fields - Twitter style
+    # Optionale Felder - Twitter-Stil
     friend_count: int = 100
     follower_count: int = 150
     statuses_count: int = 500
 
-    # Additional persona information
+    # Zusätzliche Persona-Informationen
     age: Optional[int] = None
     gender: Optional[str] = None
     mbti: Optional[str] = None
@@ -51,17 +51,17 @@ class OasisAgentProfile:
     profession: Optional[str] = None
     interested_topics: List[str] = field(default_factory=list)
 
-    # Source entity information
+    # Quellentitäts-Informationen
     source_entity_uuid: Optional[str] = None
     source_entity_type: Optional[str] = None
-    
+
     created_at: str = field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d"))
-    
+
     def to_reddit_format(self) -> Dict[str, Any]:
-        """Convert to Reddit platform format"""
+        """In Reddit-Plattform-Format konvertieren"""
         profile = {
             "user_id": self.user_id,
-            "username": self.user_name,  # OASIS library requires field name as username (no underscore)
+            "username": self.user_name,  # OASIS-Bibliothek erfordert Feldname als username (ohne Unterstrich)
             "name": self.name,
             "bio": self.bio,
             "persona": self.persona,
@@ -69,7 +69,7 @@ class OasisAgentProfile:
             "created_at": self.created_at,
         }
 
-        # Add additional persona information (if available)
+        # Zusätzliche Persona-Informationen hinzufügen (falls verfügbar)
         if self.age:
             profile["age"] = self.age
         if self.gender:
@@ -82,14 +82,14 @@ class OasisAgentProfile:
             profile["profession"] = self.profession
         if self.interested_topics:
             profile["interested_topics"] = self.interested_topics
-        
+
         return profile
-    
+
     def to_twitter_format(self) -> Dict[str, Any]:
-        """Convert to Twitter platform format"""
+        """In Twitter-Plattform-Format konvertieren"""
         profile = {
             "user_id": self.user_id,
-            "username": self.user_name,  # OASIS library requires field name as username (no underscore)
+            "username": self.user_name,  # OASIS-Bibliothek erfordert Feldname als username (ohne Unterstrich)
             "name": self.name,
             "bio": self.bio,
             "persona": self.persona,
@@ -99,7 +99,7 @@ class OasisAgentProfile:
             "created_at": self.created_at,
         }
 
-        # Add additional persona information
+        # Zusätzliche Persona-Informationen hinzufügen
         if self.age:
             profile["age"] = self.age
         if self.gender:
@@ -112,11 +112,11 @@ class OasisAgentProfile:
             profile["profession"] = self.profession
         if self.interested_topics:
             profile["interested_topics"] = self.interested_topics
-        
+
         return profile
-    
+
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to complete dictionary format"""
+        """In vollständiges Wörterbuch-Format konvertieren"""
         return {
             "user_id": self.user_id,
             "user_name": self.user_name,
@@ -141,17 +141,17 @@ class OasisAgentProfile:
 
 class OasisProfileGenerator:
     """
-    OASIS Profile Generator
+    OASIS-Profil-Generator
 
-    Convert entities from the knowledge graph to Agent Profile required by OASIS simulation
+    Entitäten aus dem Wissensgraph in das für die OASIS-Simulation benötigte Agent-Profil konvertieren
 
-    Optimization features:
-    1. Call knowledge graph retrieval function to get richer context
-    2. Generate very detailed personas (including basic information, career experience, personality traits, social media behavior, etc.)
-    3. Distinguish between individual entities and abstract group entities
+    Optimierungsfunktionen:
+    1. Wissensgraph-Abruffunktion aufrufen, um reichhaltigeren Kontext zu erhalten
+    2. Sehr detaillierte Personas generieren (einschließlich Grundinformationen, Berufserfahrung, Persönlichkeitsmerkmale, Social-Media-Verhalten usw.)
+    3. Zwischen individuellen Entitäten und abstrakten Gruppenentitäten unterscheiden
     """
 
-    # MBTI types list
+    # MBTI-Typenliste
     MBTI_TYPES = [
         "INTJ", "INTP", "ENTJ", "ENTP",
         "INFJ", "INFP", "ENFJ", "ENFP",
@@ -159,24 +159,24 @@ class OasisProfileGenerator:
         "ISTP", "ISFP", "ESTP", "ESFP"
     ]
 
-    # Common countries list
+    # Gängige Länderliste
     COUNTRIES = [
-        "US", "UK", "Japan", "Germany", "France",
-        "Canada", "Australia", "Brazil", "India", "South Korea"
+        "Deutschland", "Österreich", "Schweiz", "USA", "Großbritannien",
+        "Frankreich", "Japan", "Kanada", "Australien", "Niederlande"
     ]
 
-    # Individual type entities (need to generate specific personas)
+    # Entitätstypen für Einzelpersonen (benötigen spezifische Personas)
     INDIVIDUAL_ENTITY_TYPES = [
         "student", "alumni", "professor", "person", "publicfigure",
         "expert", "faculty", "official", "journalist", "activist"
     ]
 
-    # Group/institutional type entities (need to generate group representative personas)
+    # Gruppen-/Institutionstypen (benötigen repräsentative Gruppen-Personas)
     GROUP_ENTITY_TYPES = [
         "university", "governmentagency", "organization", "ngo",
         "mediaoutlet", "company", "institution", "group", "community"
     ]
-    
+
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -190,17 +190,17 @@ class OasisProfileGenerator:
         self.model_name = model_name or Config.LLM_MODEL_NAME
 
         if not self.api_key:
-            raise ValueError("LLM_API_KEY not configured")
+            raise ValueError("LLM_API_KEY nicht konfiguriert")
 
         self.client = OpenAI(
             api_key=self.api_key,
             base_url=self.base_url
         )
 
-        # GraphStorage for hybrid search enrichment
+        # GraphStorage für hybride Suchanreicherung
         self.storage = storage
         self.graph_id = graph_id
-    
+
     def generate_profile_from_entity(
         self,
         entity: EntityNode,
@@ -208,27 +208,27 @@ class OasisProfileGenerator:
         use_llm: bool = True
     ) -> OasisAgentProfile:
         """
-        Generate OASIS Agent Profile from knowledge graph entity
+        OASIS Agent-Profil aus Wissensgraph-Entität generieren
 
         Args:
-            entity: Knowledge graph entity node
-            user_id: User ID (for OASIS)
-            use_llm: Whether to use LLM to generate detailed persona
+            entity: Wissensgraph-Entitäts-Node
+            user_id: Benutzer-ID (für OASIS)
+            use_llm: Ob LLM zur Generierung detaillierter Persona verwendet werden soll
 
         Returns:
             OasisAgentProfile
         """
         entity_type = entity.get_entity_type() or "Entity"
 
-        # Basic information
+        # Grundinformationen
         name = entity.name
         user_name = self._generate_username(name)
 
-        # Build context information
+        # Kontextinformationen erstellen
         context = self._build_entity_context(entity)
-        
+
         if use_llm:
-            # Use LLM to generate detailed persona
+            # LLM zur Generierung detaillierter Persona verwenden
             profile_data = self._generate_profile_with_llm(
                 entity_name=name,
                 entity_type=entity_type,
@@ -237,20 +237,20 @@ class OasisProfileGenerator:
                 context=context
             )
         else:
-            # Use rules to generate basic persona
+            # Regeln zur Generierung grundlegender Persona verwenden
             profile_data = self._generate_profile_rule_based(
                 entity_name=name,
                 entity_type=entity_type,
                 entity_summary=entity.summary,
                 entity_attributes=entity.attributes
             )
-        
+
         return OasisAgentProfile(
             user_id=user_id,
             user_name=user_name,
             name=name,
             bio=profile_data.get("bio", f"{entity_type}: {name}"),
-            persona=profile_data.get("persona", entity.summary or f"A {entity_type} named {name}."),
+            persona=profile_data.get("persona", entity.summary or f"Ein(e) {entity_type} namens {name}."),
             karma=profile_data.get("karma", random.randint(500, 5000)),
             friend_count=profile_data.get("friend_count", random.randint(50, 500)),
             follower_count=profile_data.get("follower_count", random.randint(100, 1000)),
@@ -264,28 +264,28 @@ class OasisProfileGenerator:
             source_entity_uuid=entity.uuid,
             source_entity_type=entity_type,
         )
-    
+
     def _generate_username(self, name: str) -> str:
-        """Generate username"""
-        # Remove special characters, convert to lowercase
+        """Benutzernamen generieren"""
+        # Sonderzeichen entfernen, in Kleinbuchstaben konvertieren
         username = name.lower().replace(" ", "_")
         username = ''.join(c for c in username if c.isalnum() or c == '_')
 
-        # Add random suffix to avoid duplicates
+        # Zufälliges Suffix hinzufügen, um Duplikate zu vermeiden
         suffix = random.randint(100, 999)
         return f"{username}_{suffix}"
-    
+
     def _search_graph_for_entity(self, entity: EntityNode) -> Dict[str, Any]:
         """
-        Use GraphStorage hybrid search to obtain rich information related to entity
+        GraphStorage-Hybridsuche verwenden, um reichhaltige Informationen zur Entität zu erhalten
 
-        Uses storage.search() (hybrid vector + BM25) for both edges and nodes.
+        Verwendet storage.search() (hybrides Vektor- + BM25) für sowohl Edges als auch Nodes.
 
         Args:
-            entity: Entity node object
+            entity: Entitäts-Node-Objekt
 
         Returns:
-            Dictionary containing facts, node_summaries, context
+            Wörterbuch mit facts, node_summaries, context
         """
         if not self.storage:
             return {"facts": [], "node_summaries": [], "context": ""}
@@ -299,13 +299,13 @@ class OasisProfileGenerator:
         }
 
         if not self.graph_id:
-            logger.debug(f"Skip knowledge graph search: graph_id not set")
+            logger.debug(f"Wissensgraph-Suche übersprungen: graph_id nicht gesetzt")
             return results
 
-        comprehensive_query = f"All information, activities, events, relationships and background about {entity_name}"
+        comprehensive_query = f"Alle Informationen, Aktivitäten, Ereignisse, Beziehungen und Hintergründe über {entity_name}"
 
         try:
-            # Search edges (facts)
+            # Edges durchsuchen (Fakten)
             edge_results = self.storage.search(
                 graph_id=self.graph_id,
                 query=comprehensive_query,
@@ -321,7 +321,7 @@ class OasisProfileGenerator:
                         all_facts.add(fact)
             results["facts"] = list(all_facts)
 
-            # Search nodes (entity summaries)
+            # Nodes durchsuchen (Entitätszusammenfassungen)
             node_results = self.storage.search(
                 graph_id=self.graph_id,
                 query=comprehensive_query,
@@ -337,49 +337,49 @@ class OasisProfileGenerator:
                         all_summaries.add(summary)
                     name = node.get('name', '')
                     if name and name != entity_name:
-                        all_summaries.add(f"Related Entity: {name}")
+                        all_summaries.add(f"Verwandte Entität: {name}")
             results["node_summaries"] = list(all_summaries)
 
-            # Build combined context
+            # Kombinierten Kontext erstellen
             context_parts = []
             if results["facts"]:
-                context_parts.append("Fact Information:\n" + "\n".join(f"- {f}" for f in results["facts"][:20]))
+                context_parts.append("Fakteninformationen:\n" + "\n".join(f"- {f}" for f in results["facts"][:20]))
             if results["node_summaries"]:
-                context_parts.append("Related Entities:\n" + "\n".join(f"- {s}" for s in results["node_summaries"][:10]))
+                context_parts.append("Verwandte Entitäten:\n" + "\n".join(f"- {s}" for s in results["node_summaries"][:10]))
             results["context"] = "\n\n".join(context_parts)
 
-            logger.info(f"Knowledge graph hybrid search completed: {entity_name}, retrieved {len(results['facts'])} facts, {len(results['node_summaries'])} related nodes")
+            logger.info(f"Wissensgraph-Hybridsuche abgeschlossen: {entity_name}, {len(results['facts'])} Fakten abgerufen, {len(results['node_summaries'])} verwandte Nodes")
 
         except Exception as e:
-            logger.warning(f"Knowledge graph search failed ({entity_name}): {e}")
+            logger.warning(f"Wissensgraph-Suche fehlgeschlagen ({entity_name}): {e}")
 
         return results
-    
+
     def _build_entity_context(self, entity: EntityNode) -> str:
         """
-        Build complete context information for entity
+        Vollständige Kontextinformationen für die Entität erstellen
 
-        Includes:
-        1. Edge information of the entity itself (facts)
-        2. Detailed information of associated nodes
-        3. Rich information retrieved from knowledge graph hybrid search
+        Beinhaltet:
+        1. Edge-Informationen der Entität selbst (Fakten)
+        2. Detaillierte Informationen zugehöriger Nodes
+        3. Durch Wissensgraph-Hybridsuche abgerufene reichhaltige Informationen
         """
         context_parts = []
 
-        # 1. Add entity attribute information
+        # 1. Entitätsattribut-Informationen hinzufügen
         if entity.attributes:
             attrs = []
             for key, value in entity.attributes.items():
                 if value and str(value).strip():
                     attrs.append(f"- {key}: {value}")
             if attrs:
-                context_parts.append("### Entity Attributes\n" + "\n".join(attrs))
+                context_parts.append("### Entitätsattribute\n" + "\n".join(attrs))
 
-        # 2. Add related edge information (facts/relationships)
+        # 2. Verwandte Edge-Informationen hinzufügen (Fakten/Beziehungen)
         existing_facts = set()
         if entity.related_edges:
             relationships = []
-            for edge in entity.related_edges:  # No limit on quantity
+            for edge in entity.related_edges:  # Keine Mengenbegrenzung
                 fact = edge.get("fact", "")
                 edge_name = edge.get("edge_name", "")
                 direction = edge.get("direction", "")
@@ -389,22 +389,22 @@ class OasisProfileGenerator:
                     existing_facts.add(fact)
                 elif edge_name:
                     if direction == "outgoing":
-                        relationships.append(f"- {entity.name} --[{edge_name}]--> (Related Entity)")
+                        relationships.append(f"- {entity.name} --[{edge_name}]--> (Verwandte Entität)")
                     else:
-                        relationships.append(f"- (Related Entity) --[{edge_name}]--> {entity.name}")
+                        relationships.append(f"- (Verwandte Entität) --[{edge_name}]--> {entity.name}")
 
             if relationships:
-                context_parts.append("### Related Facts and Relationships\n" + "\n".join(relationships))
+                context_parts.append("### Verwandte Fakten und Beziehungen\n" + "\n".join(relationships))
 
-        # 3. Add detailed information of related nodes
+        # 3. Detaillierte Informationen verwandter Nodes hinzufügen
         if entity.related_nodes:
             related_info = []
-            for node in entity.related_nodes:  # No limit on quantity
+            for node in entity.related_nodes:  # Keine Mengenbegrenzung
                 node_name = node.get("name", "")
                 node_labels = node.get("labels", [])
                 node_summary = node.get("summary", "")
 
-                # Filter out default labels
+                # Standard-Labels herausfiltern
                 custom_labels = [l for l in node_labels if l not in ["Entity", "Node"]]
                 label_str = f" ({', '.join(custom_labels)})" if custom_labels else ""
 
@@ -414,30 +414,30 @@ class OasisProfileGenerator:
                     related_info.append(f"- **{node_name}**{label_str}")
 
             if related_info:
-                context_parts.append("### Related Entity Information\n" + "\n".join(related_info))
+                context_parts.append("### Verwandte Entitätsinformationen\n" + "\n".join(related_info))
 
-        # 4. Use knowledge graph hybrid search to get richer information
+        # 4. Wissensgraph-Hybridsuche für reichhaltigere Informationen verwenden
         graph_results = self._search_graph_for_entity(entity)
 
         if graph_results.get("facts"):
-            # Deduplication: exclude existing facts
+            # Deduplizierung: vorhandene Fakten ausschließen
             new_facts = [f for f in graph_results["facts"] if f not in existing_facts]
             if new_facts:
-                context_parts.append("### Facts Retrieved from Knowledge Graph\n" + "\n".join(f"- {f}" for f in new_facts[:15]))
+                context_parts.append("### Aus dem Wissensgraph abgerufene Fakten\n" + "\n".join(f"- {f}" for f in new_facts[:15]))
 
         if graph_results.get("node_summaries"):
-            context_parts.append("### Related Nodes Retrieved from Knowledge Graph\n" + "\n".join(f"- {s}" for s in graph_results["node_summaries"][:10]))
-        
+            context_parts.append("### Aus dem Wissensgraph abgerufene verwandte Nodes\n" + "\n".join(f"- {s}" for s in graph_results["node_summaries"][:10]))
+
         return "\n\n".join(context_parts)
-    
+
     def _is_individual_entity(self, entity_type: str) -> bool:
-        """Determine if entity is an individual type"""
+        """Bestimmen, ob die Entität ein individueller Typ ist"""
         return entity_type.lower() in self.INDIVIDUAL_ENTITY_TYPES
 
     def _is_group_entity(self, entity_type: str) -> bool:
-        """Determine if entity is a group/institutional type"""
+        """Bestimmen, ob die Entität ein Gruppen-/Institutionstyp ist"""
         return entity_type.lower() in self.GROUP_ENTITY_TYPES
-    
+
     def _generate_profile_with_llm(
         self,
         entity_name: str,
@@ -447,11 +447,11 @@ class OasisProfileGenerator:
         context: str
     ) -> Dict[str, Any]:
         """
-        Use LLM to generate very detailed persona
+        LLM zur Generierung einer sehr detaillierten Persona verwenden
 
-        Based on entity type:
-        - Individual entities: generate specific character profiles
-        - Group/institutional entities: generate representative account profiles
+        Basierend auf dem Entitätstyp:
+        - Individuelle Entitäten: spezifische Charakterprofile generieren
+        - Gruppen-/Institutionsentitäten: repräsentative Kontoprofile generieren
         """
 
         is_individual = self._is_individual_entity(entity_type)
@@ -465,7 +465,7 @@ class OasisProfileGenerator:
                 entity_name, entity_type, entity_summary, entity_attributes, context
             )
 
-        # Try multiple times until successful or max retry attempts reached
+        # Mehrfach versuchen, bis erfolgreich oder maximale Wiederholungsversuche erreicht
         max_attempts = 3
         last_error = None
 
@@ -478,34 +478,34 @@ class OasisProfileGenerator:
                         {"role": "user", "content": prompt}
                     ],
                     response_format={"type": "json_object"},
-                    temperature=0.7 - (attempt * 0.1)  # Lower temperature with each retry
-                    # Don't set max_tokens, let LLM generate freely
+                    temperature=0.7 - (attempt * 0.1)  # Temperatur bei jedem Wiederholungsversuch senken
+                    # max_tokens nicht setzen, LLM frei generieren lassen
                 )
 
                 content = response.choices[0].message.content
 
-                # Check if output was truncated (finish_reason is not 'stop')
+                # Prüfen, ob die Ausgabe abgeschnitten wurde (finish_reason ist nicht 'stop')
                 finish_reason = response.choices[0].finish_reason
                 if finish_reason == 'length':
-                    logger.warning(f"LLM output truncated (attempt {attempt+1}), attempting to fix...")
+                    logger.warning(f"LLM-Ausgabe abgeschnitten (Versuch {attempt+1}), Reparatur wird versucht...")
                     content = self._fix_truncated_json(content)
 
-                # Try to parse JSON
+                # JSON parsen versuchen
                 try:
                     result = json.loads(content)
 
-                    # Validate required fields
+                    # Pflichtfelder validieren
                     if "bio" not in result or not result["bio"]:
                         result["bio"] = entity_summary[:200] if entity_summary else f"{entity_type}: {entity_name}"
                     if "persona" not in result or not result["persona"]:
-                        result["persona"] = entity_summary or f"{entity_name} is a {entity_type}."
+                        result["persona"] = entity_summary or f"{entity_name} ist ein(e) {entity_type}."
 
                     return result
 
                 except json.JSONDecodeError as je:
-                    logger.warning(f"JSON parsing failed (attempt {attempt+1}): {str(je)[:80]}")
+                    logger.warning(f"JSON-Parsing fehlgeschlagen (Versuch {attempt+1}): {str(je)[:80]}")
 
-                    # Try to fix JSON
+                    # JSON-Reparatur versuchen
                     result = self._try_fix_json(content, entity_name, entity_type, entity_summary)
                     if result.get("_fixed"):
                         del result["_fixed"]
@@ -514,75 +514,75 @@ class OasisProfileGenerator:
                     last_error = je
 
             except Exception as e:
-                logger.warning(f"LLM call failed (attempt {attempt+1}): {str(e)[:80]}")
+                logger.warning(f"LLM-Aufruf fehlgeschlagen (Versuch {attempt+1}): {str(e)[:80]}")
                 last_error = e
                 import time
-                time.sleep(1 * (attempt + 1))  # Exponential backoff
+                time.sleep(1 * (attempt + 1))  # Exponentielles Backoff
 
-        logger.warning(f"LLM persona generation failed ({max_attempts} attempts): {last_error}, using rule-based generation")
+        logger.warning(f"LLM-Persona-Generierung fehlgeschlagen ({max_attempts} Versuche): {last_error}, regelbasierte Generierung wird verwendet")
         return self._generate_profile_rule_based(
             entity_name, entity_type, entity_summary, entity_attributes
         )
-    
+
     def _fix_truncated_json(self, content: str) -> str:
-        """Fix truncated JSON (output truncated by max_tokens limit)"""
+        """Abgeschnittenes JSON reparieren (Ausgabe durch max_tokens-Limit abgeschnitten)"""
         import re
 
-        # If JSON is truncated, try to close it
+        # Wenn JSON abgeschnitten ist, versuchen es zu schließen
         content = content.strip()
 
-        # Count unclosed parentheses
+        # Nicht geschlossene Klammern zählen
         open_braces = content.count('{') - content.count('}')
         open_brackets = content.count('[') - content.count(']')
 
-        # Check for unclosed strings
-        # Simple check: if last character is not comma or closing bracket, string might be truncated
+        # Auf nicht geschlossene Zeichenketten prüfen
+        # Einfache Prüfung: wenn letztes Zeichen nicht Komma oder schließende Klammer ist, könnte die Zeichenkette abgeschnitten sein
         if content and content[-1] not in '",}]':
-            # Try to close the string
+            # Zeichenkette schließen versuchen
             content += '"'
 
-        # Close parentheses
+        # Klammern schließen
         content += ']' * open_brackets
         content += '}' * open_braces
 
         return content
-    
+
     def _try_fix_json(self, content: str, entity_name: str, entity_type: str, entity_summary: str = "") -> Dict[str, Any]:
-        """Try to fix corrupted JSON"""
+        """Beschädigtes JSON reparieren versuchen"""
         import re
 
-        # 1. First try to fix truncated case
+        # 1. Zuerst abgeschnittenen Fall reparieren versuchen
         content = self._fix_truncated_json(content)
 
-        # 2. Try to extract JSON portion
+        # 2. JSON-Teil extrahieren versuchen
         json_match = re.search(r'\{[\s\S]*\}', content)
         if json_match:
             json_str = json_match.group()
 
-            # 3. Handle newline issues in strings
-            # Find all string values and replace newlines
+            # 3. Zeilenumbruchprobleme in Zeichenketten behandeln
+            # Alle Zeichenkettenwerte finden und Zeilenumbrüche ersetzen
             def fix_string_newlines(match):
                 s = match.group(0)
-                # Replace actual newlines in string with spaces
+                # Tatsächliche Zeilenumbrüche in der Zeichenkette durch Leerzeichen ersetzen
                 s = s.replace('\n', ' ').replace('\r', ' ')
-                # Replace excess spaces
+                # Überschüssige Leerzeichen ersetzen
                 s = re.sub(r'\s+', ' ', s)
                 return s
 
-            # Match JSON string values
+            # JSON-Zeichenkettenwerte abgleichen
             json_str = re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', fix_string_newlines, json_str)
 
-            # 4. Try to parse
+            # 4. Parsen versuchen
             try:
                 result = json.loads(json_str)
                 result["_fixed"] = True
                 return result
             except json.JSONDecodeError as e:
-                # 5. If still failed, try more aggressive fix
+                # 5. Wenn immer noch fehlgeschlagen, aggressivere Reparatur versuchen
                 try:
-                    # Remove all control characters
+                    # Alle Steuerzeichen entfernen
                     json_str = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', json_str)
-                    # Replace all consecutive whitespace
+                    # Alle aufeinanderfolgenden Leerzeichen ersetzen
                     json_str = re.sub(r'\s+', ' ', json_str)
                     result = json.loads(json_str)
                     result["_fixed"] = True
@@ -590,34 +590,34 @@ class OasisProfileGenerator:
                 except:
                     pass
 
-        # 6. Try to extract partial information from content
+        # 6. Teilinformationen aus dem Inhalt extrahieren versuchen
         bio_match = re.search(r'"bio"\s*:\s*"([^"]*)"', content)
-        persona_match = re.search(r'"persona"\s*:\s*"([^"]*)', content)  # May be truncated
+        persona_match = re.search(r'"persona"\s*:\s*"([^"]*)', content)  # Könnte abgeschnitten sein
 
         bio = bio_match.group(1) if bio_match else (entity_summary[:200] if entity_summary else f"{entity_type}: {entity_name}")
-        persona = persona_match.group(1) if persona_match else (entity_summary or f"{entity_name} is a {entity_type}.")
+        persona = persona_match.group(1) if persona_match else (entity_summary or f"{entity_name} ist ein(e) {entity_type}.")
 
-        # If extracted meaningful content, mark as fixed
+        # Wenn sinnvoller Inhalt extrahiert wurde, als repariert markieren
         if bio_match or persona_match:
-            logger.info(f"Extracted partial information from corrupted JSON")
+            logger.info(f"Teilinformationen aus beschädigtem JSON extrahiert")
             return {
                 "bio": bio,
                 "persona": persona,
                 "_fixed": True
             }
 
-        # 7. Complete failure, return basic structure
-        logger.warning(f"JSON fix failed, returning basic structure")
+        # 7. Vollständig fehlgeschlagen, Grundstruktur zurückgeben
+        logger.warning(f"JSON-Reparatur fehlgeschlagen, Grundstruktur wird zurückgegeben")
         return {
             "bio": entity_summary[:200] if entity_summary else f"{entity_type}: {entity_name}",
-            "persona": entity_summary or f"{entity_name} is a {entity_type}."
+            "persona": entity_summary or f"{entity_name} ist ein(e) {entity_type}."
         }
-    
+
     def _get_system_prompt(self, is_individual: bool) -> str:
-        """Get system prompt"""
-        base_prompt = "You are an expert in generating social media user profiles. Generate detailed, realistic personas for opinion simulation that maximize restoration of existing reality. Must return valid JSON format with all string values containing no unescaped newlines. Use English."
+        """System-Prompt abrufen"""
+        base_prompt = "Sie sind ein Experte für die Generierung von Social-Media-Benutzerprofilen. Generieren Sie detaillierte, realistische Personas für die Meinungssimulation, die die bestehende Realität maximal widerspiegeln. Sie müssen gültiges JSON-Format zurückgeben, wobei alle Zeichenkettenwerte keine unescapierten Zeilenumbrüche enthalten dürfen. Verwenden Sie Deutsch."
         return base_prompt
-    
+
     def _build_individual_persona_prompt(
         self,
         entity_name: str,
@@ -626,45 +626,45 @@ class OasisProfileGenerator:
         entity_attributes: Dict[str, Any],
         context: str
     ) -> str:
-        """Build detailed persona prompt for individual entities"""
+        """Detaillierten Persona-Prompt für individuelle Entitäten erstellen"""
 
-        attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "None"
-        context_str = context[:3000] if context else "No additional context"
+        attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "Keine"
+        context_str = context[:3000] if context else "Kein zusätzlicher Kontext"
 
-        return f"""Generate a detailed social media user persona for the entity, maximizing restoration of existing reality.
+        return f"""Generieren Sie eine detaillierte Social-Media-Benutzerpersona für die Entität, die die bestehende Realität maximal widerspiegelt.
 
-Entity Name: {entity_name}
-Entity Type: {entity_type}
-Entity Summary: {entity_summary}
-Entity Attributes: {attrs_str}
+Entitätsname: {entity_name}
+Entitätstyp: {entity_type}
+Entitätszusammenfassung: {entity_summary}
+Entitätsattribute: {attrs_str}
 
-Context Information:
+Kontextinformationen:
 {context_str}
 
-Please generate JSON containing the following fields:
+Bitte generieren Sie JSON mit den folgenden Feldern:
 
-1. bio: Social media bio, 200 characters
-2. persona: Detailed persona description (2000 words of pure text), must include:
-   - Basic information (age, profession, educational background, location)
-   - Personal background (important experiences, event associations, social relationships)
-   - Personality traits (MBTI type, core personality, emotional expression)
-   - Social media behavior (posting frequency, content preferences, interaction style, language characteristics)
-   - Positions and views (attitudes toward topics, content that may provoke/touch emotions)
-   - Unique features (catchphrases, special experiences, personal interests)
-   - Personal memories (important part of persona, introduce this individual's association with events and their existing actions/reactions in events)
-3. age: Age as number (must be integer)
-4. gender: Gender, must be in English: "male" or "female"
-5. mbti: MBTI type (e.g., INTJ, ENFP)
-6. country: Country (use English, e.g., "US")
-7. profession: Profession
-8. interested_topics: Array of interested topics
+1. bio: Social-Media-Biografie, 200 Zeichen
+2. persona: Detaillierte Persona-Beschreibung (2000 Wörter reiner Text), muss enthalten:
+   - Grundinformationen (Alter, Beruf, Bildungshintergrund, Standort)
+   - Persönlicher Hintergrund (wichtige Erfahrungen, Ereignisverbindungen, soziale Beziehungen)
+   - Persönlichkeitsmerkmale (MBTI-Typ, Kernpersönlichkeit, emotionaler Ausdruck)
+   - Social-Media-Verhalten (Beitragsfrequenz, Inhaltspräferenzen, Interaktionsstil, Sprachmerkmale)
+   - Positionen und Ansichten (Einstellungen zu Themen, Inhalte die provozieren/berühren können)
+   - Einzigartige Merkmale (Redewendungen, besondere Erfahrungen, persönliche Interessen)
+   - Persönliche Erinnerungen (wichtiger Teil der Persona, stellen Sie die Verbindung dieser Person zu Ereignissen und ihre bestehenden Handlungen/Reaktionen bei Ereignissen vor)
+3. age: Alter als Zahl (muss eine Ganzzahl sein)
+4. gender: Geschlecht, muss auf Englisch sein: "male" oder "female"
+5. mbti: MBTI-Typ (z. B. INTJ, ENFP)
+6. country: Land (verwenden Sie Deutsch, z. B. "Deutschland")
+7. profession: Beruf
+8. interested_topics: Array von Interessensthemen
 
-Important:
-- All field values must be strings or numbers, do not use newlines
-- persona must be a coherent text description
-- Use English
-- Content must be consistent with entity information
-- age must be a valid integer, gender must be "male" or "female"
+Wichtig:
+- Alle Feldwerte müssen Zeichenketten oder Zahlen sein, verwenden Sie keine Zeilenumbrüche
+- persona muss eine zusammenhängende Textbeschreibung sein
+- Verwenden Sie Deutsch
+- Inhalt muss mit den Entitätsinformationen übereinstimmen
+- age muss eine gültige Ganzzahl sein, gender muss "male" oder "female" sein
 """
 
     def _build_group_persona_prompt(
@@ -675,46 +675,46 @@ Important:
         entity_attributes: Dict[str, Any],
         context: str
     ) -> str:
-        """Build detailed persona prompt for group/institutional entities"""
+        """Detaillierten Persona-Prompt für Gruppen-/Institutionsentitäten erstellen"""
 
-        attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "None"
-        context_str = context[:3000] if context else "No additional context"
+        attrs_str = json.dumps(entity_attributes, ensure_ascii=False) if entity_attributes else "Keine"
+        context_str = context[:3000] if context else "Kein zusätzlicher Kontext"
 
-        return f"""Generate detailed social media account profile for institutional/group entity, maximizing restoration of existing reality.
+        return f"""Generieren Sie ein detailliertes Social-Media-Kontoprofil für eine institutionelle/Gruppenentität, das die bestehende Realität maximal widerspiegelt.
 
-Entity Name: {entity_name}
-Entity Type: {entity_type}
-Entity Summary: {entity_summary}
-Entity Attributes: {attrs_str}
+Entitätsname: {entity_name}
+Entitätstyp: {entity_type}
+Entitätszusammenfassung: {entity_summary}
+Entitätsattribute: {attrs_str}
 
-Context Information:
+Kontextinformationen:
 {context_str}
 
-Please generate JSON containing the following fields:
+Bitte generieren Sie JSON mit den folgenden Feldern:
 
-1. bio: Official account bio, 200 characters, professional and appropriate
-2. persona: Detailed account profile description (2000 words of pure text), must include:
-   - Basic institutional information (official name, organizational nature, founding background, main functions)
-   - Account positioning (account type, target audience, core functions)
-   - Speaking style (language characteristics, common expressions, taboo topics)
-   - Content publishing characteristics (content types, publishing frequency, active time periods)
-   - Position and attitude (official stance on core topics, handling of controversies)
-   - Special notes (group profiles represented, operational habits)
-   - Institutional memories (important part of institutional persona, introduce this institution's association with events and their existing actions/reactions in events)
-3. age: Fixed at 30 (virtual age of institutional account)
-4. gender: Fixed at "other" (institutional account uses other to denote non-individual)
-5. mbti: MBTI type used to describe account style, e.g., ISTJ represents rigorous conservative
-6. country: Country (use English, e.g., "US")
-7. profession: Institutional function description
-8. interested_topics: Array of focus areas
+1. bio: Offizielles Konto-Bio, 200 Zeichen, professionell und angemessen
+2. persona: Detaillierte Kontoprofil-Beschreibung (2000 Wörter reiner Text), muss enthalten:
+   - Grundlegende Institutionsinformationen (offizieller Name, Organisationsnatur, Gründungshintergrund, Hauptfunktionen)
+   - Kontopositionierung (Kontotyp, Zielgruppe, Kernfunktionen)
+   - Sprechstil (Sprachmerkmale, häufige Ausdrücke, Tabuthemen)
+   - Veröffentlichungsmerkmale (Inhaltstypen, Veröffentlichungsfrequenz, aktive Zeiträume)
+   - Position und Haltung (offizielle Haltung zu Kernthemen, Umgang mit Kontroversen)
+   - Besondere Hinweise (vertretene Gruppenprofile, betriebliche Gewohnheiten)
+   - Institutionelle Erinnerungen (wichtiger Teil der institutionellen Persona, stellen Sie die Verbindung dieser Institution zu Ereignissen und ihre bestehenden Handlungen/Reaktionen bei Ereignissen vor)
+3. age: Fest auf 30 (virtuelles Alter des institutionellen Kontos)
+4. gender: Fest auf "other" (institutionelles Konto verwendet other zur Kennzeichnung als Nicht-Einzelperson)
+5. mbti: MBTI-Typ zur Beschreibung des Kontostils, z. B. ISTJ steht für streng konservativ
+6. country: Land (verwenden Sie Deutsch, z. B. "Deutschland")
+7. profession: Beschreibung der institutionellen Funktion
+8. interested_topics: Array von Schwerpunktbereichen
 
-Important:
-- All field values must be strings or numbers, no null values allowed
-- persona must be a coherent text description, do not use newlines
-- Use English
-- age must be integer 30, gender must be string "other"
-- Institutional account speech must match its identity positioning"""
-    
+Wichtig:
+- Alle Feldwerte müssen Zeichenketten oder Zahlen sein, keine Null-Werte erlaubt
+- persona muss eine zusammenhängende Textbeschreibung sein, verwenden Sie keine Zeilenumbrüche
+- Verwenden Sie Deutsch
+- age muss die Ganzzahl 30 sein, gender muss die Zeichenkette "other" sein
+- Institutionelle Kontosprache muss mit ihrer Identitätspositionierung übereinstimmen"""
+
     def _generate_profile_rule_based(
         self,
         entity_name: str,
@@ -722,76 +722,76 @@ Important:
         entity_summary: str,
         entity_attributes: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Generate basic persona using rules"""
+        """Grundlegende Persona regelbasiert generieren"""
 
-        # Generate different personas based on entity type
+        # Verschiedene Personas basierend auf Entitätstyp generieren
         entity_type_lower = entity_type.lower()
 
         if entity_type_lower in ["student", "alumni"]:
             return {
-                "bio": f"{entity_type} with interests in academics and social issues.",
-                "persona": f"{entity_name} is a {entity_type.lower()} who is actively engaged in academic and social discussions. They enjoy sharing perspectives and connecting with peers.",
+                "bio": f"{entity_type} mit Interessen in Wissenschaft und sozialen Themen.",
+                "persona": f"{entity_name} ist ein(e) {entity_type.lower()}, der/die aktiv an akademischen und sozialen Diskussionen teilnimmt. Er/Sie teilt gerne Perspektiven und vernetzt sich mit Gleichgesinnten.",
                 "age": random.randint(18, 30),
                 "gender": random.choice(["male", "female"]),
                 "mbti": random.choice(self.MBTI_TYPES),
                 "country": random.choice(self.COUNTRIES),
-                "profession": "Student",
-                "interested_topics": ["Education", "Social Issues", "Technology"],
+                "profession": "Student/Studentin",
+                "interested_topics": ["Bildung", "Soziale Themen", "Technologie"],
             }
 
         elif entity_type_lower in ["publicfigure", "expert", "faculty"]:
             return {
-                "bio": f"Expert and thought leader in their field.",
-                "persona": f"{entity_name} is a recognized {entity_type.lower()} who shares insights and opinions on important matters. They are known for their expertise and influence in public discourse.",
+                "bio": f"Experte und Meinungsführer in seinem/ihrem Fachgebiet.",
+                "persona": f"{entity_name} ist ein(e) anerkannte(r) {entity_type.lower()}, der/die Einblicke und Meinungen zu wichtigen Themen teilt. Er/Sie ist bekannt für Expertise und Einfluss im öffentlichen Diskurs.",
                 "age": random.randint(35, 60),
                 "gender": random.choice(["male", "female"]),
                 "mbti": random.choice(["ENTJ", "INTJ", "ENTP", "INTP"]),
                 "country": random.choice(self.COUNTRIES),
-                "profession": entity_attributes.get("occupation", "Expert"),
-                "interested_topics": ["Politics", "Economics", "Culture & Society"],
+                "profession": entity_attributes.get("occupation", "Experte"),
+                "interested_topics": ["Politik", "Wirtschaft", "Kultur & Gesellschaft"],
             }
 
         elif entity_type_lower in ["mediaoutlet", "socialmediaplatform"]:
             return {
-                "bio": f"Official account for {entity_name}. News and updates.",
-                "persona": f"{entity_name} is a media entity that reports news and facilitates public discourse. The account shares timely updates and engages with the audience on current events.",
-                "age": 30,  # Institutional virtual age
-                "gender": "other",  # Institutional uses other
-                "mbti": "ISTJ",  # Institutional style: rigorous conservative
-                "country": "US",
-                "profession": "Media",
-                "interested_topics": ["General News", "Current Events", "Public Affairs"],
+                "bio": f"Offizielles Konto von {entity_name}. Nachrichten und Aktualisierungen.",
+                "persona": f"{entity_name} ist eine Medienentität, die Nachrichten berichtet und den öffentlichen Diskurs fördert. Das Konto teilt aktuelle Nachrichten und interagiert mit dem Publikum über aktuelle Ereignisse.",
+                "age": 30,  # Institutionelles virtuelles Alter
+                "gender": "other",  # Institutionell verwendet other
+                "mbti": "ISTJ",  # Institutioneller Stil: streng konservativ
+                "country": "Deutschland",
+                "profession": "Medien",
+                "interested_topics": ["Allgemeine Nachrichten", "Aktuelle Ereignisse", "Öffentliche Angelegenheiten"],
             }
 
         elif entity_type_lower in ["university", "governmentagency", "ngo", "organization"]:
             return {
-                "bio": f"Official account of {entity_name}.",
-                "persona": f"{entity_name} is an institutional entity that communicates official positions, announcements, and engages with stakeholders on relevant matters.",
-                "age": 30,  # Institutional virtual age
-                "gender": "other",  # Institutional uses other
-                "mbti": "ISTJ",  # Institutional style: rigorous conservative
-                "country": "US",
+                "bio": f"Offizielles Konto von {entity_name}.",
+                "persona": f"{entity_name} ist eine institutionelle Entität, die offizielle Positionen und Ankündigungen kommuniziert und mit Interessengruppen zu relevanten Themen interagiert.",
+                "age": 30,  # Institutionelles virtuelles Alter
+                "gender": "other",  # Institutionell verwendet other
+                "mbti": "ISTJ",  # Institutioneller Stil: streng konservativ
+                "country": "Deutschland",
                 "profession": entity_type,
-                "interested_topics": ["Public Policy", "Community", "Official Announcements"],
+                "interested_topics": ["Öffentliche Politik", "Gemeinschaft", "Offizielle Ankündigungen"],
             }
 
         else:
-            # Default persona
+            # Standard-Persona
             return {
                 "bio": entity_summary[:150] if entity_summary else f"{entity_type}: {entity_name}",
-                "persona": entity_summary or f"{entity_name} is a {entity_type.lower()} participating in social discussions.",
+                "persona": entity_summary or f"{entity_name} ist ein(e) {entity_type.lower()}, der/die an sozialen Diskussionen teilnimmt.",
                 "age": random.randint(25, 50),
                 "gender": random.choice(["male", "female"]),
                 "mbti": random.choice(self.MBTI_TYPES),
                 "country": random.choice(self.COUNTRIES),
                 "profession": entity_type,
-                "interested_topics": ["General", "Social Issues"],
+                "interested_topics": ["Allgemeines", "Soziale Themen"],
             }
-    
+
     def set_graph_id(self, graph_id: str):
-        """Set knowledge graph ID for knowledge graph search"""
+        """Wissensgraph-ID für die Wissensgraph-Suche setzen"""
         self.graph_id = graph_id
-    
+
     def generate_profiles_from_entities(
         self,
         entities: List[EntityNode],
@@ -803,52 +803,52 @@ Important:
         output_platform: str = "reddit"
     ) -> List[OasisAgentProfile]:
         """
-        Generate Agent Profiles in batch from entities (supports parallel generation)
+        Agent-Profile in Stapeln aus Entitäten generieren (unterstützt parallele Generierung)
 
         Args:
-            entities: Entity list
-            use_llm: Whether to use LLM to generate detailed personas
-            progress_callback: Progress callback function (current, total, message)
-            graph_id: Knowledge graph ID for knowledge graph search to get richer context
-            parallel_count: Number of parallel generations, default 5
-            realtime_output_path: Real-time output file path (if provided, write after each generation)
-            output_platform: Output platform format ("reddit" or "twitter")
+            entities: Entitätsliste
+            use_llm: Ob LLM zur Generierung detaillierter Personas verwendet werden soll
+            progress_callback: Fortschritts-Callback-Funktion (aktuell, gesamt, nachricht)
+            graph_id: Wissensgraph-ID für Wissensgraph-Suche zum Erhalt reichhaltigeren Kontexts
+            parallel_count: Anzahl paralleler Generierungen, Standard 5
+            realtime_output_path: Echtzeit-Ausgabedateipfad (wenn angegeben, nach jeder Generierung schreiben)
+            output_platform: Ausgabeplattform-Format ("reddit" oder "twitter")
 
         Returns:
-            List of Agent Profiles
+            Liste von Agent-Profilen
         """
         import concurrent.futures
         from threading import Lock
-        
-        # Set graph_id for knowledge graph search
+
+        # graph_id für Wissensgraph-Suche setzen
         if graph_id:
             self.graph_id = graph_id
 
         total = len(entities)
-        profiles = [None] * total  # Pre-allocate list to maintain order
-        completed_count = [0]  # Use list for modification in closure
+        profiles = [None] * total  # Liste vorab zuweisen, um Reihenfolge beizubehalten
+        completed_count = [0]  # Liste verwenden für Änderung im Closure
         lock = Lock()
 
-        # Helper function for real-time file writing
+        # Hilfsfunktion für Echtzeit-Dateischreiben
         def save_profiles_realtime():
-            """Real-time save generated profiles to file"""
+            """Generierte Profile in Echtzeit in Datei speichern"""
             if not realtime_output_path:
                 return
 
             with lock:
-                # Filter generated profiles
+                # Generierte Profile filtern
                 existing_profiles = [p for p in profiles if p is not None]
                 if not existing_profiles:
                     return
 
                 try:
                     if output_platform == "reddit":
-                        # Reddit JSON format
+                        # Reddit JSON-Format
                         profiles_data = [p.to_reddit_format() for p in existing_profiles]
                         with open(realtime_output_path, 'w', encoding='utf-8') as f:
                             json.dump(profiles_data, f, ensure_ascii=False, indent=2)
                     else:
-                        # Twitter CSV format
+                        # Twitter CSV-Format
                         import csv
                         profiles_data = [p.to_twitter_format() for p in existing_profiles]
                         if profiles_data:
@@ -858,10 +858,10 @@ Important:
                                 writer.writeheader()
                                 writer.writerows(profiles_data)
                 except Exception as e:
-                    logger.warning(f"Real-time profile save failed: {e}")
-        
+                    logger.warning(f"Echtzeit-Profilspeicherung fehlgeschlagen: {e}")
+
         def generate_single_profile(idx: int, entity: EntityNode) -> tuple:
-            """Worker function to generate single profile"""
+            """Worker-Funktion zur Generierung eines einzelnen Profils"""
             entity_type = entity.get_entity_type() or "Entity"
 
             try:
@@ -871,39 +871,39 @@ Important:
                     use_llm=use_llm
                 )
 
-                # Real-time output generated persona to console and log
+                # Generierte Persona in Echtzeit auf der Konsole und im Log ausgeben
                 self._print_generated_profile(entity.name, entity_type, profile)
 
                 return idx, profile, None
 
             except Exception as e:
-                logger.error(f"Failed to generate persona for entity {entity.name}: {str(e)}")
-                # Create a fallback profile
+                logger.error(f"Persona-Generierung für Entität {entity.name} fehlgeschlagen: {str(e)}")
+                # Fallback-Profil erstellen
                 fallback_profile = OasisAgentProfile(
                     user_id=idx,
                     user_name=self._generate_username(entity.name),
                     name=entity.name,
                     bio=f"{entity_type}: {entity.name}",
-                    persona=entity.summary or f"A participant in social discussions.",
+                    persona=entity.summary or f"Ein Teilnehmer an sozialen Diskussionen.",
                     source_entity_uuid=entity.uuid,
                     source_entity_type=entity_type,
                 )
                 return idx, fallback_profile, str(e)
 
-        logger.info(f"Starting parallel generation of {total} agent personas (parallel count: {parallel_count})...")
+        logger.info(f"Parallele Generierung von {total} Agent-Personas wird gestartet (parallele Anzahl: {parallel_count})...")
         print(f"\n{'='*60}")
-        print(f"Starting agent persona generation - {total} entities total, parallel count: {parallel_count}")
+        print(f"Agent-Persona-Generierung wird gestartet - {total} Entitäten insgesamt, parallele Anzahl: {parallel_count}")
         print(f"{'='*60}\n")
-        
-        # Use thread pool for parallel execution
+
+        # Thread-Pool für parallele Ausführung verwenden
         with concurrent.futures.ThreadPoolExecutor(max_workers=parallel_count) as executor:
-            # Submit all tasks
+            # Alle Aufgaben einreichen
             future_to_entity = {
                 executor.submit(generate_single_profile, idx, entity): (idx, entity)
                 for idx, entity in enumerate(entities)
             }
 
-            # Collect results
+            # Ergebnisse sammeln
             for future in concurrent.futures.as_completed(future_to_entity):
                 idx, entity = future_to_entity[future]
                 entity_type = entity.get_entity_type() or "Entity"
@@ -916,23 +916,23 @@ Important:
                         completed_count[0] += 1
                         current = completed_count[0]
 
-                    # Real-time file writing
+                    # Echtzeit-Dateischreiben
                     save_profiles_realtime()
 
                     if progress_callback:
                         progress_callback(
                             current,
                             total,
-                            f"Completed {current}/{total}: {entity.name} ({entity_type})"
+                            f"Abgeschlossen {current}/{total}: {entity.name} ({entity_type})"
                         )
 
                     if error:
-                        logger.warning(f"[{current}/{total}] {entity.name} using fallback persona: {error}")
+                        logger.warning(f"[{current}/{total}] {entity.name} verwendet Fallback-Persona: {error}")
                     else:
-                        logger.info(f"[{current}/{total}] Successfully generated persona: {entity.name} ({entity_type})")
+                        logger.info(f"[{current}/{total}] Persona erfolgreich generiert: {entity.name} ({entity_type})")
 
                 except Exception as e:
-                    logger.error(f"Exception occurred while processing entity {entity.name}: {str(e)}")
+                    logger.error(f"Ausnahme bei der Verarbeitung von Entität {entity.name} aufgetreten: {str(e)}")
                     with lock:
                         completed_count[0] += 1
                     profiles[idx] = OasisAgentProfile(
@@ -940,50 +940,50 @@ Important:
                         user_name=self._generate_username(entity.name),
                         name=entity.name,
                         bio=f"{entity_type}: {entity.name}",
-                        persona=entity.summary or "A participant in social discussions.",
+                        persona=entity.summary or "Ein Teilnehmer an sozialen Diskussionen.",
                         source_entity_uuid=entity.uuid,
                         source_entity_type=entity_type,
                     )
-                    # Real-time file writing (even for fallback personas)
+                    # Echtzeit-Dateischreiben (auch für Fallback-Personas)
                     save_profiles_realtime()
 
         print(f"\n{'='*60}")
-        print(f"Persona generation complete! Generated {len([p for p in profiles if p])} agents")
+        print(f"Persona-Generierung abgeschlossen! {len([p for p in profiles if p])} Agents generiert")
         print(f"{'='*60}\n")
-        
+
         return profiles
-    
+
     def _print_generated_profile(self, entity_name: str, entity_type: str, profile: OasisAgentProfile):
-        """Real-time output generated persona to console (complete content, not truncated)"""
+        """Generierte Persona in Echtzeit auf der Konsole ausgeben (vollständiger Inhalt, nicht gekürzt)"""
         separator = "-" * 70
 
-        # Build complete output content (not truncated)
-        topics_str = ', '.join(profile.interested_topics) if profile.interested_topics else 'None'
+        # Vollständigen Ausgabeinhalt erstellen (nicht gekürzt)
+        topics_str = ', '.join(profile.interested_topics) if profile.interested_topics else 'Keine'
 
         output_lines = [
             f"\n{separator}",
-            f"[Generated] {entity_name} ({entity_type})",
+            f"[Generiert] {entity_name} ({entity_type})",
             f"{separator}",
-            f"Username: {profile.user_name}",
+            f"Benutzername: {profile.user_name}",
             f"",
-            f"[Bio]",
+            f"[Biografie]",
             f"{profile.bio}",
             f"",
-            f"[Detailed Persona]",
+            f"[Detaillierte Persona]",
             f"{profile.persona}",
             f"",
-            f"[Basic Attributes]",
-            f"Age: {profile.age} | Gender: {profile.gender} | MBTI: {profile.mbti}",
-            f"Profession: {profile.profession} | Country: {profile.country}",
-            f"Interested Topics: {topics_str}",
+            f"[Grundattribute]",
+            f"Alter: {profile.age} | Geschlecht: {profile.gender} | MBTI: {profile.mbti}",
+            f"Beruf: {profile.profession} | Land: {profile.country}",
+            f"Interessensthemen: {topics_str}",
             separator
         ]
 
         output = "\n".join(output_lines)
 
-        # Only output to console (avoid duplication, logger no longer outputs complete content)
+        # Nur auf der Konsole ausgeben (Duplizierung vermeiden, Logger gibt keinen vollständigen Inhalt mehr aus)
         print(output)
-    
+
     def save_profiles(
         self,
         profiles: List[OasisAgentProfile],
@@ -991,85 +991,85 @@ Important:
         platform: str = "reddit"
     ):
         """
-        Save profiles to file (choose correct format based on platform)
+        Profile in Datei speichern (korrektes Format basierend auf Plattform wählen)
 
-        OASIS platform format requirements:
-        - Twitter: CSV format
-        - Reddit: JSON format
+        OASIS-Plattform-Formatanforderungen:
+        - Twitter: CSV-Format
+        - Reddit: JSON-Format
 
         Args:
-            profiles: Profile list
-            file_path: File path
-            platform: Platform type ("reddit" or "twitter")
+            profiles: Profilliste
+            file_path: Dateipfad
+            platform: Plattformtyp ("reddit" oder "twitter")
         """
         if platform == "twitter":
             self._save_twitter_csv(profiles, file_path)
         else:
             self._save_reddit_json(profiles, file_path)
-    
+
     def _save_twitter_csv(self, profiles: List[OasisAgentProfile], file_path: str):
         """
-        Save Twitter Profile as CSV format (compliant with OASIS official requirements)
+        Twitter-Profil als CSV-Format speichern (konform mit offiziellen OASIS-Anforderungen)
 
-        OASIS Twitter required CSV fields:
-        - user_id: User ID (starting from 0 based on CSV order)
-        - name: User real name
-        - username: Username in the system
-        - user_char: Detailed persona description (injected into LLM system prompt, guides agent behavior)
-        - description: Short public bio (displayed on user profile page)
+        OASIS Twitter benötigte CSV-Felder:
+        - user_id: Benutzer-ID (beginnend bei 0 basierend auf CSV-Reihenfolge)
+        - name: Klarname des Benutzers
+        - username: Benutzername im System
+        - user_char: Detaillierte Persona-Beschreibung (wird in LLM-System-Prompt injiziert, steuert Agent-Verhalten)
+        - description: Kurze öffentliche Biografie (auf der Profilseite angezeigt)
 
-        user_char vs description difference:
-        - user_char: Internal use, LLM system prompt, determines how agent thinks and acts
-        - description: External display, visible to other users
+        Unterschied user_char vs description:
+        - user_char: Interne Verwendung, LLM-System-Prompt, bestimmt wie der Agent denkt und handelt
+        - description: Externe Anzeige, für andere Benutzer sichtbar
         """
         import csv
 
-        # Ensure file extension is .csv
+        # Sicherstellen, dass die Dateierweiterung .csv ist
         if not file_path.endswith('.csv'):
             file_path = file_path.replace('.json', '.csv')
 
         with open(file_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
 
-            # Write OASIS required header
+            # OASIS-benötigten Header schreiben
             headers = ['user_id', 'name', 'username', 'user_char', 'description']
             writer.writerow(headers)
 
-            # Write data rows
+            # Datenzeilen schreiben
             for idx, profile in enumerate(profiles):
-                # user_char: Complete persona (bio + persona) for LLM system prompt
+                # user_char: Vollständige Persona (bio + persona) für LLM-System-Prompt
                 user_char = profile.bio
                 if profile.persona and profile.persona != profile.bio:
                     user_char = f"{profile.bio} {profile.persona}"
-                # Handle newlines (replace with space in CSV)
+                # Zeilenumbrüche behandeln (durch Leerzeichen ersetzen in CSV)
                 user_char = user_char.replace('\n', ' ').replace('\r', ' ')
 
-                # description: Short bio for external display
+                # description: Kurze Biografie für externe Anzeige
                 description = profile.bio.replace('\n', ' ').replace('\r', ' ')
 
                 row = [
-                    idx,                    # user_id: Sequential ID starting from 0
-                    profile.name,           # name: Real name
-                    profile.user_name,      # username: Username
-                    user_char,              # user_char: Complete persona (internal LLM use)
-                    description             # description: Short bio (external display)
+                    idx,                    # user_id: Fortlaufende ID beginnend bei 0
+                    profile.name,           # name: Klarname
+                    profile.user_name,      # username: Benutzername
+                    user_char,              # user_char: Vollständige Persona (interne LLM-Verwendung)
+                    description             # description: Kurze Biografie (externe Anzeige)
                 ]
                 writer.writerow(row)
 
-        logger.info(f"Saved {len(profiles)} Twitter profiles to {file_path} (OASIS CSV format)")
-    
+        logger.info(f"{len(profiles)} Twitter-Profile in {file_path} gespeichert (OASIS CSV-Format)")
+
     def _normalize_gender(self, gender: Optional[str]) -> str:
         """
-        Normalize gender field to OASIS required English format
+        Geschlechtsfeld in das von OASIS benötigte englische Format normalisieren
 
-        OASIS requires: male, female, other
+        OASIS erfordert: male, female, other
         """
         if not gender:
             return "other"
 
         gender_lower = gender.lower().strip()
 
-        # Gender mapping
+        # Geschlechtszuordnung
         gender_map = {
             "male": "male",
             "female": "female",
@@ -1077,44 +1077,44 @@ Important:
         }
 
         return gender_map.get(gender_lower, "other")
-    
+
     def _save_reddit_json(self, profiles: List[OasisAgentProfile], file_path: str):
         """
-        Save Reddit Profile as JSON format
+        Reddit-Profil als JSON-Format speichern
 
-        Use format consistent with to_reddit_format() to ensure OASIS can read correctly.
-        Must include user_id field, which is the key for OASIS agent_graph.get_agent() matching!
+        Format konsistent mit to_reddit_format() verwenden, um sicherzustellen, dass OASIS korrekt lesen kann.
+        Muss user_id-Feld enthalten, das ist der Schlüssel für OASIS agent_graph.get_agent() Zuordnung!
 
-        Required fields:
-        - user_id: User ID (integer, used to match poster_agent_id in initial_posts)
-        - username: Username
-        - name: Display name
-        - bio: Bio
-        - persona: Detailed persona
-        - age: Age (integer)
-        - gender: "male", "female", or "other"
-        - mbti: MBTI type
-        - country: Country
+        Benötigte Felder:
+        - user_id: Benutzer-ID (Ganzzahl, zum Abgleich mit poster_agent_id in initial_posts)
+        - username: Benutzername
+        - name: Anzeigename
+        - bio: Biografie
+        - persona: Detaillierte Persona
+        - age: Alter (Ganzzahl)
+        - gender: "male", "female" oder "other"
+        - mbti: MBTI-Typ
+        - country: Land
         """
         data = []
         for idx, profile in enumerate(profiles):
-            # Use format consistent with to_reddit_format()
+            # Format konsistent mit to_reddit_format() verwenden
             item = {
-                "user_id": profile.user_id if profile.user_id is not None else idx,  # Key: must include user_id
+                "user_id": profile.user_id if profile.user_id is not None else idx,  # Schlüssel: muss user_id enthalten
                 "username": profile.user_name,
                 "name": profile.name,
                 "bio": profile.bio[:150] if profile.bio else f"{profile.name}",
-                "persona": profile.persona or f"{profile.name} is a participant in social discussions.",
+                "persona": profile.persona or f"{profile.name} ist ein Teilnehmer an sozialen Diskussionen.",
                 "karma": profile.karma if profile.karma else 1000,
                 "created_at": profile.created_at,
-                # OASIS required fields - ensure all have defaults
+                # OASIS-benötigte Felder - sicherstellen, dass alle Standardwerte haben
                 "age": profile.age if profile.age else 30,
                 "gender": self._normalize_gender(profile.gender),
                 "mbti": profile.mbti if profile.mbti else "ISTJ",
-                "country": profile.country if profile.country else "US",
+                "country": profile.country if profile.country else "Deutschland",
             }
 
-            # Optional fields
+            # Optionale Felder
             if profile.profession:
                 item["profession"] = profile.profession
             if profile.interested_topics:
@@ -1125,16 +1125,15 @@ Important:
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.info(f"Saved {len(profiles)} Reddit profiles to {file_path} (JSON format, includes user_id field)")
-    
-    # Keep old method name as alias for backward compatibility
+        logger.info(f"{len(profiles)} Reddit-Profile in {file_path} gespeichert (JSON-Format, enthält user_id-Feld)")
+
+    # Alten Methodennamen als Alias für Abwärtskompatibilität beibehalten
     def save_profiles_to_json(
         self,
         profiles: List[OasisAgentProfile],
         file_path: str,
         platform: str = "reddit"
     ):
-        """[Deprecated] Please use save_profiles() method"""
-        logger.warning("save_profiles_to_json is deprecated, please use save_profiles method")
+        """[Veraltet] Bitte verwenden Sie die Methode save_profiles()"""
+        logger.warning("save_profiles_to_json ist veraltet, bitte verwenden Sie die Methode save_profiles")
         self.save_profiles(profiles, file_path, platform)
-

@@ -1,7 +1,7 @@
 """
-LLM Client Wrapper
-Unified OpenAI format API calls
-Supports Ollama num_ctx parameter to prevent prompt truncation
+LLM-Client-Wrapper
+Einheitliche OpenAI-Format-API-Aufrufe
+Unterstützt Ollama num_ctx-Parameter zur Vermeidung von Prompt-Abschneidung
 """
 
 import json
@@ -14,7 +14,7 @@ from ..config import Config
 
 
 class LLMClient:
-    """LLM Client"""
+    """LLM-Client"""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class LLMClient:
         self.model = model or Config.LLM_MODEL_NAME
 
         if not self.api_key:
-            raise ValueError("LLM_API_KEY not configured")
+            raise ValueError("LLM_API_KEY nicht konfiguriert")
 
         self.client = OpenAI(
             api_key=self.api_key,
@@ -36,12 +36,12 @@ class LLMClient:
             timeout=timeout,
         )
 
-        # Ollama context window size — prevents prompt truncation.
-        # Read from env OLLAMA_NUM_CTX, default 8192 (Ollama default is only 2048).
+        # Ollama-Kontextfenstergröße — verhindert Prompt-Abschneidung.
+        # Wird aus Umgebungsvariable OLLAMA_NUM_CTX gelesen, Standard 8192 (Ollama-Standard ist nur 2048).
         self._num_ctx = int(os.environ.get('OLLAMA_NUM_CTX', '8192'))
 
     def _is_ollama(self) -> bool:
-        """Check if we're talking to an Ollama server."""
+        """Prüfen, ob wir mit einem Ollama-Server kommunizieren."""
         return '11434' in (self.base_url or '')
 
     def chat(
@@ -52,16 +52,16 @@ class LLMClient:
         response_format: Optional[Dict] = None
     ) -> str:
         """
-        Send chat request
+        Chat-Anfrage senden
 
         Args:
-            messages: Message list
-            temperature: Temperature parameter
-            max_tokens: Max token count
-            response_format: Response format (e.g., JSON mode)
+            messages: Nachrichtenliste
+            temperature: Temperaturparameter
+            max_tokens: Maximale Token-Anzahl
+            response_format: Antwortformat (z.B. JSON-Modus)
 
         Returns:
-            Model response text
+            Modellantworttext
         """
         kwargs = {
             "model": self.model,
@@ -73,7 +73,7 @@ class LLMClient:
         if response_format:
             kwargs["response_format"] = response_format
 
-        # For Ollama: pass num_ctx via extra_body to prevent prompt truncation
+        # Für Ollama: num_ctx über extra_body übergeben, um Prompt-Abschneidung zu verhindern
         if self._is_ollama() and self._num_ctx:
             kwargs["extra_body"] = {
                 "options": {"num_ctx": self._num_ctx}
@@ -81,7 +81,7 @@ class LLMClient:
 
         response = self.client.chat.completions.create(**kwargs)
         content = response.choices[0].message.content
-        # Some models (like MiniMax M2.5) include <think>thinking content in response, need to remove
+        # Einige Modelle (wie MiniMax M2.5) enthalten <think>-Denkinhalte in der Antwort, diese müssen entfernt werden
         content = re.sub(r'<think>[\s\S]*?</think>', '', content).strip()
         return content
 
@@ -92,15 +92,15 @@ class LLMClient:
         max_tokens: int = 4096
     ) -> Dict[str, Any]:
         """
-        Send chat request and return JSON
+        Chat-Anfrage senden und JSON zurückgeben
 
         Args:
-            messages: Message list
-            temperature: Temperature parameter
-            max_tokens: Max token count
+            messages: Nachrichtenliste
+            temperature: Temperaturparameter
+            max_tokens: Maximale Token-Anzahl
 
         Returns:
-            Parsed JSON object
+            Geparste JSON-Objekt
         """
         response = self.chat(
             messages=messages,
@@ -108,7 +108,7 @@ class LLMClient:
             max_tokens=max_tokens,
             response_format={"type": "json_object"}
         )
-        # Clean markdown code block markers
+        # Markdown-Codeblock-Markierungen bereinigen
         cleaned_response = response.strip()
         cleaned_response = re.sub(r'^```(?:json)?\s*\n?', '', cleaned_response, flags=re.IGNORECASE)
         cleaned_response = re.sub(r'\n?```\s*$', '', cleaned_response)
@@ -117,4 +117,11 @@ class LLMClient:
         try:
             return json.loads(cleaned_response)
         except json.JSONDecodeError:
-            raise ValueError(f"Invalid JSON format from LLM: {cleaned_response}")
+            # Versuche ein eingebettetes JSON-Objekt in der Antwort zu finden
+            match = re.search(r'\{[\s\S]*\}', cleaned_response)
+            if match:
+                try:
+                    return json.loads(match.group())
+                except json.JSONDecodeError:
+                    pass
+            raise ValueError(f"Ungültiges JSON-Format vom LLM: {cleaned_response}")

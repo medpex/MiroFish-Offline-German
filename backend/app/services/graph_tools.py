@@ -1,13 +1,13 @@
 """
-Graph Retrieval Tools Service
-Encapsulates graph search, node retrieval, edge queries, and other tools for use by Report Agent.
+Graph-Abruf-Werkzeugdienst
+Kapselt Graph-Suche, Knotenabruf, Kantenabfragen und weitere Werkzeuge für den Report Agent.
 
-Replaces zep_tools.py — all Zep Cloud calls replaced by GraphStorage.
+Ersetzt zep_tools.py — alle Zep-Cloud-Aufrufe durch GraphStorage ersetzt.
 
-Core Retrieval Tools (Optimized):
-1. InsightForge (Deep Insight Retrieval) - Most powerful hybrid search, automatically generates sub-questions and multi-dimensional retrieval
-2. PanoramaSearch (Breadth Search) - Get comprehensive view, including expired content
-3. QuickSearch (Simple Search) - Quick retrieval
+Kern-Abrufwerkzeuge (optimiert):
+1. InsightForge (Tiefenanalyse-Abruf) - Leistungsstärkste Hybridsuche, generiert automatisch Unterfragen und mehrdimensionalen Abruf
+2. PanoramaSearch (Breitensuche) - Umfassende Übersicht erhalten, einschließlich abgelaufener Inhalte
+3. QuickSearch (Einfache Suche) - Schnellabruf
 """
 
 import json
@@ -23,7 +23,7 @@ logger = get_logger('mirofish.graph_tools')
 
 @dataclass
 class SearchResult:
-    """Search Result"""
+    """Suchergebnis"""
     facts: List[str]
     edges: List[Dict[str, Any]]
     nodes: List[Dict[str, Any]]
@@ -40,11 +40,11 @@ class SearchResult:
         }
 
     def to_text(self) -> str:
-        """Convert to text format for LLM understanding"""
-        text_parts = [f"Search Query: {self.query}", f"Found {self.total_count} related results"]
+        """In Textformat für LLM-Verständnis umwandeln"""
+        text_parts = [f"Suchanfrage: {self.query}", f"{self.total_count} verwandte Ergebnisse gefunden"]
 
         if self.facts:
-            text_parts.append("\n### Related Facts:")
+            text_parts.append("\n### Verwandte Fakten:")
             for i, fact in enumerate(self.facts, 1):
                 text_parts.append(f"{i}. {fact}")
 
@@ -53,7 +53,7 @@ class SearchResult:
 
 @dataclass
 class NodeInfo:
-    """Node Information"""
+    """Knoteninformation"""
     uuid: str
     name: str
     labels: List[str]
@@ -70,14 +70,14 @@ class NodeInfo:
         }
 
     def to_text(self) -> str:
-        """Convert to text format"""
-        entity_type = next((la for la in self.labels if la not in ["Entity", "Node"]), "Unknown type")
-        return f"Entity: {self.name} (Type: {entity_type})\nSummary: {self.summary}"
+        """In Textformat umwandeln"""
+        entity_type = next((la for la in self.labels if la not in ["Entity", "Node"]), "Unbekannter Typ")
+        return f"Entität: {self.name} (Typ: {entity_type})\nZusammenfassung: {self.summary}"
 
 
 @dataclass
 class EdgeInfo:
-    """Edge Information"""
+    """Kanteninformation"""
     uuid: str
     name: str
     fact: str
@@ -85,7 +85,7 @@ class EdgeInfo:
     target_node_uuid: str
     source_node_name: Optional[str] = None
     target_node_name: Optional[str] = None
-    # Temporal information (may be absent in Neo4j — kept for interface compat)
+    # Zeitliche Informationen (können in Neo4j fehlen — für Schnittstellenkompatibilität beibehalten)
     created_at: Optional[str] = None
     valid_at: Optional[str] = None
     invalid_at: Optional[str] = None
@@ -107,47 +107,47 @@ class EdgeInfo:
         }
 
     def to_text(self, include_temporal: bool = False) -> str:
-        """Convert to text format"""
+        """In Textformat umwandeln"""
         source = self.source_node_name or self.source_node_uuid[:8]
         target = self.target_node_name or self.target_node_uuid[:8]
-        base_text = f"Relationship: {source} --[{self.name}]--> {target}\nFact: {self.fact}"
+        base_text = f"Beziehung: {source} --[{self.name}]--> {target}\nFakt: {self.fact}"
 
         if include_temporal:
-            valid_at = self.valid_at or "Unknown"
-            invalid_at = self.invalid_at or "Present"
-            base_text += f"\nTime Range: {valid_at} - {invalid_at}"
+            valid_at = self.valid_at or "Unbekannt"
+            invalid_at = self.invalid_at or "Gegenwart"
+            base_text += f"\nZeitraum: {valid_at} - {invalid_at}"
             if self.expired_at:
-                base_text += f" (Expired: {self.expired_at})"
+                base_text += f" (Abgelaufen: {self.expired_at})"
 
         return base_text
 
     @property
     def is_expired(self) -> bool:
-        """Whether already expired"""
+        """Ob bereits abgelaufen"""
         return self.expired_at is not None
 
     @property
     def is_invalid(self) -> bool:
-        """Whether already invalid"""
+        """Ob bereits ungültig"""
         return self.invalid_at is not None
 
 
 @dataclass
 class InsightForgeResult:
     """
-    Deep Insight Retrieval Result (InsightForge)
-    Contains retrieval results from multiple sub-questions and integrated analysis
+    Tiefenanalyse-Abrufergebnis (InsightForge)
+    Enthält Abrufergebnisse aus mehreren Unterfragen und integrierte Analyse
     """
     query: str
     simulation_requirement: str
     sub_queries: List[str]
 
-    # Retrieval results by dimension
+    # Abrufergebnisse nach Dimension
     semantic_facts: List[str] = field(default_factory=list)
     entity_insights: List[Dict[str, Any]] = field(default_factory=list)
     relationship_chains: List[str] = field(default_factory=list)
 
-    # Statistical information
+    # Statistische Informationen
     total_facts: int = 0
     total_entities: int = 0
     total_relationships: int = 0
@@ -166,38 +166,38 @@ class InsightForgeResult:
         }
 
     def to_text(self) -> str:
-        """Convert to detailed text format for LLM understanding"""
+        """In detailliertes Textformat für LLM-Verständnis umwandeln"""
         text_parts = [
-            f"## Future Prediction Deep Analysis",
-            f"Analysis Query: {self.query}",
-            f"Prediction Scenario: {self.simulation_requirement}",
-            f"\n### Prediction Data Statistics",
-            f"- Related Prediction Facts: {self.total_facts}",
-            f"- Involved Entities: {self.total_entities}",
-            f"- Relationship Chains: {self.total_relationships}"
+            f"## Zukunftsprognose – Tiefenanalyse",
+            f"Analyseabfrage: {self.query}",
+            f"Prognoseszenario: {self.simulation_requirement}",
+            f"\n### Prognosedaten-Statistik",
+            f"- Verwandte Prognosefakten: {self.total_facts}",
+            f"- Beteiligte Entitäten: {self.total_entities}",
+            f"- Beziehungsketten: {self.total_relationships}"
         ]
 
         if self.sub_queries:
-            text_parts.append(f"\n### Analysis Sub-Questions")
+            text_parts.append(f"\n### Analyse-Unterfragen")
             for i, sq in enumerate(self.sub_queries, 1):
                 text_parts.append(f"{i}. {sq}")
 
         if self.semantic_facts:
-            text_parts.append(f"\n### Key Facts (Please quote these verbatim in the report)")
+            text_parts.append(f"\n### Schlüsselfakten (Bitte im Bericht wörtlich zitieren)")
             for i, fact in enumerate(self.semantic_facts, 1):
                 text_parts.append(f'{i}. "{fact}"')
 
         if self.entity_insights:
-            text_parts.append(f"\n### Core Entities")
+            text_parts.append(f"\n### Kernentitäten")
             for entity in self.entity_insights:
-                text_parts.append(f"- **{entity.get('name', 'Unknown')}** ({entity.get('type', 'Entity')})")
+                text_parts.append(f"- **{entity.get('name', 'Unbekannt')}** ({entity.get('type', 'Entität')})")
                 if entity.get('summary'):
-                    text_parts.append(f"  Summary: \"{entity.get('summary')}\"")
+                    text_parts.append(f"  Zusammenfassung: \"{entity.get('summary')}\"")
                 if entity.get('related_facts'):
-                    text_parts.append(f"  Related Facts: {len(entity.get('related_facts', []))} facts")
+                    text_parts.append(f"  Verwandte Fakten: {len(entity.get('related_facts', []))} Fakten")
 
         if self.relationship_chains:
-            text_parts.append(f"\n### Relationship Chains")
+            text_parts.append(f"\n### Beziehungsketten")
             for chain in self.relationship_chains:
                 text_parts.append(f"- {chain}")
 
@@ -207,8 +207,8 @@ class InsightForgeResult:
 @dataclass
 class PanoramaResult:
     """
-    Breadth Search Result (Panorama)
-    Contains all related information, including expired content
+    Breitensuchergebnis (Panorama)
+    Enthält alle verwandten Informationen, einschließlich abgelaufener Inhalte
     """
     query: str
 
@@ -236,31 +236,31 @@ class PanoramaResult:
         }
 
     def to_text(self) -> str:
-        """Convert to text format (complete version, no truncation)"""
+        """In Textformat umwandeln (vollständige Version, ohne Kürzung)"""
         text_parts = [
-            f"## Breadth Search Results (Future Panoramic View)",
-            f"Query: {self.query}",
-            f"\n### Statistics",
-            f"- Total Nodes: {self.total_nodes}",
-            f"- Total Edges: {self.total_edges}",
-            f"- Current Valid Facts: {self.active_count}",
-            f"- Historical/Expired Facts: {self.historical_count}"
+            f"## Breitensuchergebnisse (Zukunfts-Panoramaansicht)",
+            f"Abfrage: {self.query}",
+            f"\n### Statistik",
+            f"- Gesamtanzahl Knoten: {self.total_nodes}",
+            f"- Gesamtanzahl Kanten: {self.total_edges}",
+            f"- Aktuell gültige Fakten: {self.active_count}",
+            f"- Historische/abgelaufene Fakten: {self.historical_count}"
         ]
 
         if self.active_facts:
-            text_parts.append(f"\n### Current Valid Facts (Simulation Results Verbatim)")
+            text_parts.append(f"\n### Aktuell gültige Fakten (Simulationsergebnisse im Wortlaut)")
             for i, fact in enumerate(self.active_facts, 1):
                 text_parts.append(f'{i}. "{fact}"')
 
         if self.historical_facts:
-            text_parts.append(f"\n### Historical/Expired Facts (Evolution Record)")
+            text_parts.append(f"\n### Historische/abgelaufene Fakten (Entwicklungsverlauf)")
             for i, fact in enumerate(self.historical_facts, 1):
                 text_parts.append(f'{i}. "{fact}"')
 
         if self.all_nodes:
-            text_parts.append(f"\n### Involved Entities")
+            text_parts.append(f"\n### Beteiligte Entitäten")
             for node in self.all_nodes:
-                entity_type = next((la for la in node.labels if la not in ["Entity", "Node"]), "Entity")
+                entity_type = next((la for la in node.labels if la not in ["Entity", "Node"]), "Entität")
                 text_parts.append(f"- **{node.name}** ({entity_type})")
 
         return "\n".join(text_parts)
@@ -268,7 +268,7 @@ class PanoramaResult:
 
 @dataclass
 class AgentInterview:
-    """Single Agent Interview Result"""
+    """Einzelnes Agent-Interviewergebnis"""
     agent_name: str
     agent_role: str
     agent_bio: str
@@ -288,11 +288,11 @@ class AgentInterview:
 
     def to_text(self) -> str:
         text = f"**{self.agent_name}** ({self.agent_role})\n"
-        text += f"_Bio: {self.agent_bio}_\n\n"
-        text += f"**Q:** {self.question}\n\n"
+        text += f"_Biografie: {self.agent_bio}_\n\n"
+        text += f"**F:** {self.question}\n\n"
         text += f"**A:** {self.response}\n"
         if self.key_quotes:
-            text += "\n**Key Quotes:**\n"
+            text += "\n**Schlüsselzitate:**\n"
             for quote in self.key_quotes:
                 clean_quote = quote.replace('\u201c', '').replace('\u201d', '').replace('"', '')
                 clean_quote = clean_quote.replace('\u300c', '').replace('\u300d', '')
@@ -320,8 +320,8 @@ class AgentInterview:
 @dataclass
 class InterviewResult:
     """
-    Interview Result
-    Contains interview responses from multiple simulated Agents
+    Interviewergebnis
+    Enthält Interviewantworten von mehreren simulierten Agents
     """
     interview_topic: str
     interview_questions: List[str]
@@ -348,64 +348,64 @@ class InterviewResult:
         }
 
     def to_text(self) -> str:
-        """Convert to detailed text format for LLM understanding and report reference"""
+        """In detailliertes Textformat für LLM-Verständnis und Berichtsreferenz umwandeln"""
         text_parts = [
-            "## Deep Interview Report",
-            f"**Interview Topic:** {self.interview_topic}",
-            f"**Interviewees:** {self.interviewed_count} / {self.total_agents} Simulated Agents",
-            "\n### Selection Rationale",
-            self.selection_reasoning or "(Automatic Selection)",
+            "## Tiefeninterview-Bericht",
+            f"**Interviewthema:** {self.interview_topic}",
+            f"**Befragte:** {self.interviewed_count} / {self.total_agents} simulierte Agents",
+            "\n### Auswahlbegründung",
+            self.selection_reasoning or "(Automatische Auswahl)",
             "\n---",
-            "\n### Interview Transcripts",
+            "\n### Interviewprotokolle",
         ]
 
         if self.interviews:
             for i, interview in enumerate(self.interviews, 1):
-                text_parts.append(f"\n#### Interview #{i}: {interview.agent_name}")
+                text_parts.append(f"\n#### Interview Nr. {i}: {interview.agent_name}")
                 text_parts.append(interview.to_text())
                 text_parts.append("\n---")
         else:
-            text_parts.append("(No interview records)\n\n---")
+            text_parts.append("(Keine Interviewaufzeichnungen)\n\n---")
 
-        text_parts.append("\n### Interview Summary & Key Insights")
-        text_parts.append(self.summary or "(No summary)")
+        text_parts.append("\n### Interviewzusammenfassung & Schlüsselerkenntnisse")
+        text_parts.append(self.summary or "(Keine Zusammenfassung)")
 
         return "\n".join(text_parts)
 
 
 class GraphToolsService:
     """
-    Graph Retrieval Tools Service (via GraphStorage / Neo4j)
+    Graph-Abruf-Werkzeugdienst (via GraphStorage / Neo4j)
 
-    [Core Retrieval Tools - Optimized]
-    1. insight_forge - Deep Insight Retrieval (Most powerful, auto-generates sub-questions, multi-dimensional retrieval)
-    2. panorama_search - Breadth Search (Get comprehensive view, including expired content)
-    3. quick_search - Simple Search (Quick retrieval)
-    4. interview_agents - Deep Interview (Interview simulated Agents, obtain multi-perspective insights)
+    [Kern-Abrufwerkzeuge - Optimiert]
+    1. insight_forge - Tiefenanalyse-Abruf (Leistungsstärkstes Werkzeug, generiert automatisch Unterfragen, mehrdimensionaler Abruf)
+    2. panorama_search - Breitensuche (Umfassende Übersicht erhalten, einschließlich abgelaufener Inhalte)
+    3. quick_search - Einfache Suche (Schnellabruf)
+    4. interview_agents - Tiefeninterview (Simulierte Agents interviewen, Mehrperspektiven-Erkenntnisse gewinnen)
 
-    [Basic Tools]
-    - search_graph - Graph semantic search
-    - get_all_nodes - Get all nodes in graph
-    - get_all_edges - Get all edges in graph (with temporal information)
-    - get_node_detail - Get detailed node information
-    - get_node_edges - Get edges related to a node
-    - get_entities_by_type - Get entities by type
-    - get_entity_summary - Get entity relationship summary
+    [Basiswerkzeuge]
+    - search_graph - Graph-Semantiksuche
+    - get_all_nodes - Alle Knoten im Graph abrufen
+    - get_all_edges - Alle Kanten im Graph abrufen (mit zeitlichen Informationen)
+    - get_node_detail - Detaillierte Knoteninformationen abrufen
+    - get_node_edges - Knotenbeziehungskanten abrufen
+    - get_entities_by_type - Entitäten nach Typ abrufen
+    - get_entity_summary - Entitäts-Beziehungszusammenfassung abrufen
     """
 
     def __init__(self, storage: GraphStorage, llm_client: Optional[LLMClient] = None):
         self.storage = storage
         self._llm_client = llm_client
-        logger.info("GraphToolsService initialization complete")
+        logger.info("GraphToolsService-Initialisierung abgeschlossen")
 
     @property
     def llm(self) -> LLMClient:
-        """Lazy initialization of LLM client"""
+        """Verzögerte Initialisierung des LLM-Clients"""
         if self._llm_client is None:
             self._llm_client = LLMClient()
         return self._llm_client
 
-    # ========== Basic Tools ==========
+    # ========== Basiswerkzeuge ==========
 
     def search_graph(
         self,
@@ -415,18 +415,18 @@ class GraphToolsService:
         scope: str = "edges"
     ) -> SearchResult:
         """
-        Graph semantic search (hybrid: vector + BM25 via Neo4j)
+        Graph-Semantiksuche (Hybrid: Vektor + BM25 via Neo4j)
 
         Args:
-            graph_id: Graph ID
-            query: Search query
-            limit: Number of results to return
-            scope: Search scope, "edges" or "nodes" or "both"
+            graph_id: Graph-ID
+            query: Suchanfrage
+            limit: Anzahl der zurückzugebenden Ergebnisse
+            scope: Suchbereich, "edges" oder "nodes" oder "both"
 
         Returns:
             SearchResult
         """
-        logger.info(f"Graph search: graph_id={graph_id}, query={query[:50]}...")
+        logger.info(f"Graph-Suche: graph_id={graph_id}, query={query[:50]}...")
 
         try:
             search_results = self.storage.search(
@@ -440,7 +440,7 @@ class GraphToolsService:
             edges = []
             nodes = []
 
-            # Parse edge results
+            # Kantenergebnisse parsen
             if hasattr(search_results, 'edges'):
                 edge_list = search_results.edges
             elif isinstance(search_results, dict) and 'edges' in search_results:
@@ -461,7 +461,7 @@ class GraphToolsService:
                         "target_node_uuid": edge.get('target_node_uuid', ''),
                     })
 
-            # Parse node results
+            # Knotenergebnisse parsen
             if hasattr(search_results, 'nodes'):
                 node_list = search_results.nodes
             elif isinstance(search_results, dict) and 'nodes' in search_results:
@@ -481,7 +481,7 @@ class GraphToolsService:
                     if summary:
                         facts.append(f"[{node.get('name', '')}]: {summary}")
 
-            logger.info(f"Search complete: Found {len(facts)} related facts")
+            logger.info(f"Suche abgeschlossen: {len(facts)} verwandte Fakten gefunden")
 
             return SearchResult(
                 facts=facts,
@@ -492,7 +492,7 @@ class GraphToolsService:
             )
 
         except Exception as e:
-            logger.warning(f"Graph search failed, degrading to local search: {str(e)}")
+            logger.warning(f"Graph-Suche fehlgeschlagen, Fallback auf lokale Suche: {str(e)}")
             return self._local_search(graph_id, query, limit, scope)
 
     def _local_search(
@@ -503,9 +503,9 @@ class GraphToolsService:
         scope: str = "edges"
     ) -> SearchResult:
         """
-        Local keyword matching search (fallback approach)
+        Lokale Schlüsselwort-Suche (Fallback-Verfahren)
         """
-        logger.info(f"Using local search: query={query[:30]}...")
+        logger.info(f"Verwende lokale Suche: query={query[:30]}...")
 
         facts = []
         edges_result = []
@@ -570,10 +570,10 @@ class GraphToolsService:
                     if summary:
                         facts.append(f"[{node.get('name', '')}]: {summary}")
 
-            logger.info(f"Local search complete: Found {len(facts)} related facts")
+            logger.info(f"Lokale Suche abgeschlossen: {len(facts)} verwandte Fakten gefunden")
 
         except Exception as e:
-            logger.error(f"Local search failed: {str(e)}")
+            logger.error(f"Lokale Suche fehlgeschlagen: {str(e)}")
 
         return SearchResult(
             facts=facts,
@@ -584,8 +584,8 @@ class GraphToolsService:
         )
 
     def get_all_nodes(self, graph_id: str) -> List[NodeInfo]:
-        """Get all nodes in the graph"""
-        logger.info(f"Getting all nodes in graph {graph_id}...")
+        """Alle Knoten im Graph abrufen"""
+        logger.info(f"Abruf aller Knoten im Graph {graph_id}...")
 
         raw_nodes = self.storage.get_all_nodes(graph_id)
 
@@ -599,12 +599,12 @@ class GraphToolsService:
                 attributes=node.get("attributes", {})
             ))
 
-        logger.info(f"Retrieved {len(result)} nodes")
+        logger.info(f"{len(result)} Knoten abgerufen")
         return result
 
     def get_all_edges(self, graph_id: str, include_temporal: bool = True) -> List[EdgeInfo]:
-        """Get all edges in the graph (with temporal information)"""
-        logger.info(f"Getting all edges in graph {graph_id}...")
+        """Alle Kanten im Graph abrufen (mit zeitlichen Informationen)"""
+        logger.info(f"Abruf aller Kanten im Graph {graph_id}...")
 
         raw_edges = self.storage.get_all_edges(graph_id)
 
@@ -626,12 +626,12 @@ class GraphToolsService:
 
             result.append(edge_info)
 
-        logger.info(f"Retrieved {len(result)} edges")
+        logger.info(f"{len(result)} Kanten abgerufen")
         return result
 
     def get_node_detail(self, node_uuid: str) -> Optional[NodeInfo]:
-        """Get detailed information about a single node"""
-        logger.info(f"Getting node details: {node_uuid[:8]}...")
+        """Detaillierte Informationen zu einem einzelnen Knoten abrufen"""
+        logger.info(f"Abruf der Knotendetails: {node_uuid[:8]}...")
 
         try:
             node = self.storage.get_node(node_uuid)
@@ -646,17 +646,17 @@ class GraphToolsService:
                 attributes=node.get("attributes", {})
             )
         except Exception as e:
-            logger.error(f"Failed to get node details: {str(e)}")
+            logger.error(f"Abruf der Knotendetails fehlgeschlagen: {str(e)}")
             return None
 
     def get_node_edges(self, graph_id: str, node_uuid: str) -> List[EdgeInfo]:
         """
-        Get all edges related to a node
+        Alle mit einem Knoten verbundenen Kanten abrufen
 
-        Optimized: uses storage.get_node_edges() (O(degree) Cypher)
-        instead of loading ALL edges and filtering.
+        Optimiert: Verwendet storage.get_node_edges() (O(degree) Cypher)
+        anstatt ALLE Kanten zu laden und zu filtern.
         """
-        logger.info(f"Getting edges related to node {node_uuid[:8]}...")
+        logger.info(f"Abruf der Kanten für Knoten {node_uuid[:8]}...")
 
         try:
             raw_edges = self.storage.get_node_edges(node_uuid)
@@ -675,11 +675,11 @@ class GraphToolsService:
                     expired_at=edge.get("expired_at"),
                 ))
 
-            logger.info(f"Found {len(result)} edges related to the node")
+            logger.info(f"{len(result)} mit dem Knoten verbundene Kanten gefunden")
             return result
 
         except Exception as e:
-            logger.warning(f"Failed to get node edges: {str(e)}")
+            logger.warning(f"Abruf der Knotenkanten fehlgeschlagen: {str(e)}")
             return []
 
     def get_entities_by_type(
@@ -687,10 +687,10 @@ class GraphToolsService:
         graph_id: str,
         entity_type: str
     ) -> List[NodeInfo]:
-        """Get entities by type"""
-        logger.info(f"Getting entities of type {entity_type}...")
+        """Entitäten nach Typ abrufen"""
+        logger.info(f"Abruf der Entitäten vom Typ {entity_type}...")
 
-        # Use optimized label-based query from storage
+        # Optimierte Label-basierte Abfrage aus dem Speicher verwenden
         raw_nodes = self.storage.get_nodes_by_label(graph_id, entity_type)
 
         result = []
@@ -703,7 +703,7 @@ class GraphToolsService:
                 attributes=node.get("attributes", {})
             ))
 
-        logger.info(f"Found {len(result)} entities of type {entity_type}")
+        logger.info(f"{len(result)} Entitäten vom Typ {entity_type} gefunden")
         return result
 
     def get_entity_summary(
@@ -711,8 +711,8 @@ class GraphToolsService:
         graph_id: str,
         entity_name: str
     ) -> Dict[str, Any]:
-        """Get relationship summary for a specific entity"""
-        logger.info(f"Getting relationship summary for entity {entity_name}...")
+        """Beziehungszusammenfassung für eine bestimmte Entität abrufen"""
+        logger.info(f"Abruf der Beziehungszusammenfassung für Entität {entity_name}...")
 
         search_result = self.search_graph(
             graph_id=graph_id,
@@ -740,8 +740,8 @@ class GraphToolsService:
         }
 
     def get_graph_statistics(self, graph_id: str) -> Dict[str, Any]:
-        """Get statistics for the graph"""
-        logger.info(f"Getting statistics for graph {graph_id}...")
+        """Statistiken für den Graph abrufen"""
+        logger.info(f"Abruf der Statistiken für Graph {graph_id}...")
 
         nodes = self.get_all_nodes(graph_id)
         edges = self.get_all_edges(graph_id)
@@ -770,8 +770,8 @@ class GraphToolsService:
         simulation_requirement: str,
         limit: int = 30
     ) -> Dict[str, Any]:
-        """Get simulation-related context information"""
-        logger.info(f"Getting simulation context: {simulation_requirement[:50]}...")
+        """Simulationsbezogene Kontextinformationen abrufen"""
+        logger.info(f"Abruf des Simulationskontexts: {simulation_requirement[:50]}...")
 
         search_result = self.search_graph(
             graph_id=graph_id,
@@ -801,7 +801,7 @@ class GraphToolsService:
             "total_entities": len(entities)
         }
 
-    # ========== Core Retrieval Tools (Optimized) ==========
+    # ========== Kern-Abrufwerkzeuge (optimiert) ==========
 
     def insight_forge(
         self,
@@ -812,16 +812,16 @@ class GraphToolsService:
         max_sub_queries: int = 5
     ) -> InsightForgeResult:
         """
-        [InsightForge - Deep Insight Retrieval]
+        [InsightForge - Tiefenanalyse-Abruf]
 
-        The most powerful hybrid retrieval function, automatically decomposes problems and performs multi-dimensional retrieval:
-        1. Use LLM to decompose the problem into multiple sub-questions
-        2. Perform semantic search on each sub-question
-        3. Extract related entities and get their detailed information
-        4. Trace relationship chains
-        5. Integrate all results and generate deep insights
+        Die leistungsstärkste Hybrid-Abruffunktion, zerlegt Probleme automatisch und führt mehrdimensionalen Abruf durch:
+        1. LLM verwenden, um das Problem in mehrere Unterfragen zu zerlegen
+        2. Semantische Suche für jede Unterfrage durchführen
+        3. Verwandte Entitäten extrahieren und deren detaillierte Informationen abrufen
+        4. Beziehungsketten verfolgen
+        5. Alle Ergebnisse integrieren und tiefgehende Erkenntnisse generieren
         """
-        logger.info(f"InsightForge deep insight retrieval: {query[:50]}...")
+        logger.info(f"InsightForge Tiefenanalyse-Abruf: {query[:50]}...")
 
         result = InsightForgeResult(
             query=query,
@@ -829,7 +829,7 @@ class GraphToolsService:
             sub_queries=[]
         )
 
-        # Step 1: Use LLM to generate sub-questions
+        # Schritt 1: LLM zur Generierung von Unterfragen verwenden
         sub_queries = self._generate_sub_queries(
             query=query,
             simulation_requirement=simulation_requirement,
@@ -837,9 +837,9 @@ class GraphToolsService:
             max_queries=max_sub_queries
         )
         result.sub_queries = sub_queries
-        logger.info(f"Generated {len(sub_queries)} sub-questions")
+        logger.info(f"{len(sub_queries)} Unterfragen generiert")
 
-        # Step 2: Perform semantic search on each sub-question
+        # Schritt 2: Semantische Suche für jede Unterfrage durchführen
         all_facts = []
         all_edges = []
         seen_facts = set()
@@ -859,7 +859,7 @@ class GraphToolsService:
 
             all_edges.extend(search_result.edges)
 
-        # Also search for the original question
+        # Auch die ursprüngliche Frage durchsuchen
         main_search = self.search_graph(
             graph_id=graph_id,
             query=query,
@@ -874,7 +874,7 @@ class GraphToolsService:
         result.semantic_facts = all_facts
         result.total_facts = len(all_facts)
 
-        # Step 3: Extract related entity UUIDs from edges
+        # Schritt 3: Verwandte Entitäts-UUIDs aus Kanten extrahieren
         entity_uuids = set()
         for edge_data in all_edges:
             if isinstance(edge_data, dict):
@@ -885,7 +885,7 @@ class GraphToolsService:
                 if target_uuid:
                     entity_uuids.add(target_uuid)
 
-        # Get related entity details
+        # Verwandte Entitätsdetails abrufen
         entity_insights = []
         node_map = {}
 
@@ -911,13 +911,13 @@ class GraphToolsService:
                         "related_facts": related_facts
                     })
             except Exception as e:
-                logger.debug(f"Failed to get node {uuid}: {e}")
+                logger.debug(f"Knoten {uuid} konnte nicht abgerufen werden: {e}")
                 continue
 
         result.entity_insights = entity_insights
         result.total_entities = len(entity_insights)
 
-        # Step 4: Build relationship chains
+        # Schritt 4: Beziehungsketten aufbauen
         relationship_chains = []
         for edge_data in all_edges:
             if isinstance(edge_data, dict):
@@ -935,7 +935,7 @@ class GraphToolsService:
         result.relationship_chains = relationship_chains
         result.total_relationships = len(relationship_chains)
 
-        logger.info(f"InsightForge complete: {result.total_facts} facts, {result.total_entities} entities, {result.total_relationships} relationships")
+        logger.info(f"InsightForge abgeschlossen: {result.total_facts} Fakten, {result.total_entities} Entitäten, {result.total_relationships} Beziehungen")
         return result
 
     def _generate_sub_queries(
@@ -945,24 +945,24 @@ class GraphToolsService:
         report_context: str = "",
         max_queries: int = 5
     ) -> List[str]:
-        """Use LLM to generate sub-questions"""
-        system_prompt = """You are a professional question analysis expert. Your task is to decompose a complex question into multiple sub-questions that can be independently observed in a simulated world.
+        """LLM zur Generierung von Unterfragen verwenden"""
+        system_prompt = """Du bist ein professioneller Fragenanalyse-Experte. Deine Aufgabe ist es, eine komplexe Frage in mehrere Unterfragen zu zerlegen, die unabhängig in einer simulierten Welt beobachtet werden können.
 
-Requirements:
-1. Each sub-question should be specific enough to find related Agent behavior or events in the simulated world
-2. Sub-questions should cover different dimensions of the original question (e.g., who, what, why, how, when, where)
-3. Sub-questions should be relevant to the simulation scenario
-4. Return in JSON format: {"sub_queries": ["sub-question 1", "sub-question 2", ...]}"""
+Anforderungen:
+1. Jede Unterfrage sollte spezifisch genug sein, um verwandtes Agent-Verhalten oder Ereignisse in der simulierten Welt zu finden
+2. Unterfragen sollten verschiedene Dimensionen der Originalfrage abdecken (z.B. wer, was, warum, wie, wann, wo)
+3. Unterfragen sollten relevant für das Simulationsszenario sein
+4. Rückgabe im JSON-Format: {"sub_queries": ["Unterfrage 1", "Unterfrage 2", ...]}"""
 
-        user_prompt = f"""Simulation requirement background:
+        user_prompt = f"""Hintergrund der Simulationsanforderung:
 {simulation_requirement}
 
-{f"Report context: {report_context[:500]}" if report_context else ""}
+{f"Berichtskontext: {report_context[:500]}" if report_context else ""}
 
-Please decompose the following question into {max_queries} sub-questions:
+Bitte zerlege die folgende Frage in {max_queries} Unterfragen:
 {query}
 
-Return the sub-questions as a JSON list."""
+Gib die Unterfragen als JSON-Liste zurück."""
 
         try:
             response = self.llm.chat_json(
@@ -977,12 +977,12 @@ Return the sub-questions as a JSON list."""
             return [str(sq) for sq in sub_queries[:max_queries]]
 
         except Exception as e:
-            logger.warning(f"Failed to generate sub-questions: {str(e)}, using default sub-questions")
+            logger.warning(f"Generierung der Unterfragen fehlgeschlagen: {str(e)}, verwende Standard-Unterfragen")
             return [
                 query,
-                f"Main participants in {query}",
-                f"Causes and impacts of {query}",
-                f"Development process of {query}"
+                f"Hauptbeteiligte bei {query}",
+                f"Ursachen und Auswirkungen von {query}",
+                f"Entwicklungsverlauf von {query}"
             ][:max_queries]
 
     def panorama_search(
@@ -993,26 +993,26 @@ Return the sub-questions as a JSON list."""
         limit: int = 50
     ) -> PanoramaResult:
         """
-        [PanoramaSearch - Breadth Search]
+        [PanoramaSearch - Breitensuche]
 
-        Get a comprehensive panoramic view, including all related content and historical/expired information.
+        Umfassende Panoramaansicht erhalten, einschließlich aller verwandten Inhalte und historischer/abgelaufener Informationen.
         """
-        logger.info(f"PanoramaSearch breadth search: {query[:50]}...")
+        logger.info(f"PanoramaSearch Breitensuche: {query[:50]}...")
 
         result = PanoramaResult(query=query)
 
-        # Get all nodes
+        # Alle Knoten abrufen
         all_nodes = self.get_all_nodes(graph_id)
         node_map = {n.uuid: n for n in all_nodes}
         result.all_nodes = all_nodes
         result.total_nodes = len(all_nodes)
 
-        # Get all edges (including temporal information)
+        # Alle Kanten abrufen (einschließlich zeitlicher Informationen)
         all_edges = self.get_all_edges(graph_id, include_temporal=True)
         result.all_edges = all_edges
         result.total_edges = len(all_edges)
 
-        # Categorize facts
+        # Fakten kategorisieren
         active_facts = []
         historical_facts = []
 
@@ -1026,14 +1026,14 @@ Return the sub-questions as a JSON list."""
             is_historical = edge.is_expired or edge.is_invalid
 
             if is_historical:
-                valid_at = edge.valid_at or "Unknown"
-                invalid_at = edge.invalid_at or edge.expired_at or "Unknown"
+                valid_at = edge.valid_at or "Unbekannt"
+                invalid_at = edge.invalid_at or edge.expired_at or "Unbekannt"
                 fact_with_time = f"[{valid_at} - {invalid_at}] {edge.fact}"
                 historical_facts.append(fact_with_time)
             else:
                 active_facts.append(edge.fact)
 
-        # Sort by relevance based on query
+        # Nach Relevanz basierend auf der Abfrage sortieren
         query_lower = query.lower()
         keywords = [w.strip() for w in query_lower.replace(',', ' ').replace('，', ' ').split() if len(w.strip()) > 1]
 
@@ -1055,7 +1055,7 @@ Return the sub-questions as a JSON list."""
         result.active_count = len(active_facts)
         result.historical_count = len(historical_facts)
 
-        logger.info(f"PanoramaSearch complete: {result.active_count} valid, {result.historical_count} historical")
+        logger.info(f"PanoramaSearch abgeschlossen: {result.active_count} gültig, {result.historical_count} historisch")
         return result
 
     def quick_search(
@@ -1065,10 +1065,10 @@ Return the sub-questions as a JSON list."""
         limit: int = 10
     ) -> SearchResult:
         """
-        [QuickSearch - Simple Search]
-        Fast and lightweight retrieval tool.
+        [QuickSearch - Einfache Suche]
+        Schnelles und leichtgewichtiges Abrufwerkzeug.
         """
-        logger.info(f"QuickSearch simple search: {query[:50]}...")
+        logger.info(f"QuickSearch Einfache Suche: {query[:50]}...")
 
         result = self.search_graph(
             graph_id=graph_id,
@@ -1077,7 +1077,7 @@ Return the sub-questions as a JSON list."""
             scope="edges"
         )
 
-        logger.info(f"QuickSearch complete: {result.total_count} results")
+        logger.info(f"QuickSearch abgeschlossen: {result.total_count} Ergebnisse")
         return result
 
     def interview_agents(
@@ -1089,33 +1089,33 @@ Return the sub-questions as a JSON list."""
         custom_questions: List[str] = None
     ) -> InterviewResult:
         """
-        [InterviewAgents - Deep Interview]
+        [InterviewAgents - Tiefeninterview]
 
-        Call the real OASIS interview API to interview Agents running in the simulation.
-        This method does NOT use GraphStorage — it calls SimulationRunner
-        and reads agent profiles from disk.
+        Ruft die echte OASIS-Interview-API auf, um laufende Simulations-Agents zu interviewen.
+        Diese Methode verwendet NICHT GraphStorage — sie ruft SimulationRunner auf
+        und liest Agent-Profile von der Festplatte.
         """
         from .simulation_runner import SimulationRunner
 
-        logger.info(f"InterviewAgents deep interview (real API): {interview_requirement[:50]}...")
+        logger.info(f"InterviewAgents Tiefeninterview (echte API): {interview_requirement[:50]}...")
 
         result = InterviewResult(
             interview_topic=interview_requirement,
             interview_questions=custom_questions or []
         )
 
-        # Step 1: Read agent profile files
+        # Schritt 1: Agent-Profildateien einlesen
         profiles = self._load_agent_profiles(simulation_id)
 
         if not profiles:
-            logger.warning(f"No profile files found for simulation {simulation_id}")
-            result.summary = "No Agent profile files found for interview"
+            logger.warning(f"Keine Profildateien für Simulation {simulation_id} gefunden")
+            result.summary = "Keine Agent-Profildateien für das Interview gefunden"
             return result
 
         result.total_agents = len(profiles)
-        logger.info(f"Loaded {len(profiles)} Agent profiles")
+        logger.info(f"{len(profiles)} Agent-Profile geladen")
 
-        # Step 2: Use LLM to select Agents for interview
+        # Schritt 2: LLM zur Auswahl der zu interviewenden Agents verwenden
         selected_agents, selected_indices, selection_reasoning = self._select_agents_for_interview(
             profiles=profiles,
             interview_requirement=interview_requirement,
@@ -1125,33 +1125,33 @@ Return the sub-questions as a JSON list."""
 
         result.selected_agents = selected_agents
         result.selection_reasoning = selection_reasoning
-        logger.info(f"Selected {len(selected_agents)} Agents for interview: {selected_indices}")
+        logger.info(f"{len(selected_agents)} Agents für Interview ausgewählt: {selected_indices}")
 
-        # Step 3: Generate interview questions
+        # Schritt 3: Interviewfragen generieren
         if not result.interview_questions:
             result.interview_questions = self._generate_interview_questions(
                 interview_requirement=interview_requirement,
                 simulation_requirement=simulation_requirement,
                 selected_agents=selected_agents
             )
-            logger.info(f"Generated {len(result.interview_questions)} interview questions")
+            logger.info(f"{len(result.interview_questions)} Interviewfragen generiert")
 
         combined_prompt = "\n".join([f"{i+1}. {q}" for i, q in enumerate(result.interview_questions)])
 
         INTERVIEW_PROMPT_PREFIX = (
-            "You are being interviewed. Please combine your character profile, all past memories and actions, "
-            "and directly answer the following questions in plain text.\n"
-            "Response requirements:\n"
-            "1. Answer directly in natural language, do not call any tools\n"
-            "2. Do not return JSON format or tool call format\n"
-            "3. Do not use Markdown headings (e.g., #, ##, ###)\n"
-            "4. Answer the questions in order, with each answer starting with 'Question X:' (X is the question number)\n"
-            "5. Separate each answer with a blank line\n"
-            "6. Provide substantive answers, at least 2-3 sentences per question\n\n"
+            "Du wirst interviewt. Bitte kombiniere dein Charakterprofil, alle bisherigen Erinnerungen und Handlungen, "
+            "und beantworte die folgenden Fragen direkt als Fließtext.\n"
+            "Antwortanforderungen:\n"
+            "1. Antworte direkt in natürlicher Sprache, rufe keine Werkzeuge auf\n"
+            "2. Gib kein JSON-Format oder Werkzeugaufruf-Format zurück\n"
+            "3. Verwende keine Markdown-Überschriften (z.B. #, ##, ###)\n"
+            "4. Beantworte die Fragen der Reihe nach, jede Antwort beginnt mit 'Frage X:' (X ist die Fragennummer)\n"
+            "5. Trenne jede Antwort durch eine Leerzeile\n"
+            "6. Gib inhaltliche Antworten, mindestens 2-3 Sätze pro Frage\n\n"
         )
         optimized_prompt = f"{INTERVIEW_PROMPT_PREFIX}{combined_prompt}"
 
-        # Step 4: Call the real interview API
+        # Schritt 4: Echte Interview-API aufrufen
         try:
             interviews_request = []
             for agent_idx in selected_indices:
@@ -1160,7 +1160,7 @@ Return the sub-questions as a JSON list."""
                     "prompt": optimized_prompt
                 })
 
-            logger.info(f"Calling batch interview API (dual platform): {len(interviews_request)} Agents")
+            logger.info(f"Batch-Interview-API aufrufen (Duale Plattform): {len(interviews_request)} Agents")
 
             api_result = SimulationRunner.interview_agents_batch(
                 simulation_id=simulation_id,
@@ -1169,22 +1169,22 @@ Return the sub-questions as a JSON list."""
                 timeout=180.0
             )
 
-            logger.info(f"Interview API returned: {api_result.get('interviews_count', 0)} results, success={api_result.get('success')}")
+            logger.info(f"Interview-API zurückgegeben: {api_result.get('interviews_count', 0)} Ergebnisse, success={api_result.get('success')}")
 
             if not api_result.get("success", False):
-                error_msg = api_result.get("error", "Unknown error")
-                logger.warning(f"Interview API call failed: {error_msg}")
-                result.summary = f"Interview API call failed: {error_msg}. Please check the OASIS simulation environment status."
+                error_msg = api_result.get("error", "Unbekannter Fehler")
+                logger.warning(f"Interview-API-Aufruf fehlgeschlagen: {error_msg}")
+                result.summary = f"Interview-API-Aufruf fehlgeschlagen: {error_msg}. Bitte den Status der OASIS-Simulationsumgebung prüfen."
                 return result
 
-            # Step 5: Parse API response
+            # Schritt 5: API-Antwort parsen
             api_data = api_result.get("result", {})
             results_dict = api_data.get("results", {}) if isinstance(api_data, dict) else {}
 
             for i, agent_idx in enumerate(selected_indices):
                 agent = selected_agents[i]
                 agent_name = agent.get("realname", agent.get("username", f"Agent_{agent_idx}"))
-                agent_role = agent.get("profession", "Unknown")
+                agent_role = agent.get("profession", "Unbekannt")
                 agent_bio = agent.get("bio", "")
 
                 twitter_result = results_dict.get(f"twitter_{agent_idx}", {})
@@ -1196,9 +1196,9 @@ Return the sub-questions as a JSON list."""
                 twitter_response = self._clean_tool_call_response(twitter_response)
                 reddit_response = self._clean_tool_call_response(reddit_response)
 
-                twitter_text = twitter_response if twitter_response else "(No response from this platform)"
-                reddit_text = reddit_response if reddit_response else "(No response from this platform)"
-                response_text = f"[Twitter Platform Response]\n{twitter_text}\n\n[Reddit Platform Response]\n{reddit_text}"
+                twitter_text = twitter_response if twitter_response else "(Keine Antwort von dieser Plattform)"
+                reddit_text = reddit_response if reddit_response else "(Keine Antwort von dieser Plattform)"
+                response_text = f"[Twitter-Plattform-Antwort]\n{twitter_text}\n\n[Reddit-Plattform-Antwort]\n{reddit_text}"
 
                 import re
                 combined_responses = f"{twitter_response} {reddit_response}"
@@ -1237,29 +1237,29 @@ Return the sub-questions as a JSON list."""
             result.interviewed_count = len(result.interviews)
 
         except ValueError as e:
-            logger.warning(f"Interview API call failed (environment not running?): {e}")
-            result.summary = f"Interview failed: {str(e)}. The simulation environment may be closed. Please ensure the OASIS environment is running."
+            logger.warning(f"Interview-API-Aufruf fehlgeschlagen (Umgebung nicht aktiv?): {e}")
+            result.summary = f"Interview fehlgeschlagen: {str(e)}. Die Simulationsumgebung ist möglicherweise geschlossen. Bitte sicherstellen, dass die OASIS-Umgebung läuft."
             return result
         except Exception as e:
-            logger.error(f"Interview API call exception: {e}")
+            logger.error(f"Interview-API-Aufruf Ausnahme: {e}")
             import traceback
             logger.error(traceback.format_exc())
-            result.summary = f"An error occurred during the interview process: {str(e)}"
+            result.summary = f"Während des Interviewprozesses ist ein Fehler aufgetreten: {str(e)}"
             return result
 
-        # Step 6: Generate interview summary
+        # Schritt 6: Interviewzusammenfassung generieren
         if result.interviews:
             result.summary = self._generate_interview_summary(
                 interviews=result.interviews,
                 interview_requirement=interview_requirement
             )
 
-        logger.info(f"InterviewAgents complete: Interviewed {result.interviewed_count} Agents (dual platform)")
+        logger.info(f"InterviewAgents abgeschlossen: {result.interviewed_count} Agents interviewt (Duale Plattform)")
         return result
 
     @staticmethod
     def _clean_tool_call_response(response: str) -> str:
-        """Clean JSON tool call wrappers in Agent responses and extract actual content"""
+        """JSON-Werkzeugaufruf-Wrapper in Agent-Antworten bereinigen und tatsächlichen Inhalt extrahieren"""
         if not response or not response.strip().startswith('{'):
             return response
         text = response.strip()
@@ -1279,7 +1279,7 @@ Return the sub-questions as a JSON list."""
         return response
 
     def _load_agent_profiles(self, simulation_id: str) -> List[Dict[str, Any]]:
-        """Load Agent profile files for simulation"""
+        """Agent-Profildateien für die Simulation laden"""
         import os
         import csv
 
@@ -1290,18 +1290,18 @@ Return the sub-questions as a JSON list."""
 
         profiles = []
 
-        # Preferentially try to read Reddit JSON format
+        # Bevorzugt Reddit-JSON-Format lesen
         reddit_profile_path = os.path.join(sim_dir, "reddit_profiles.json")
         if os.path.exists(reddit_profile_path):
             try:
                 with open(reddit_profile_path, 'r', encoding='utf-8') as f:
                     profiles = json.load(f)
-                logger.info(f"Loaded {len(profiles)} profiles from reddit_profiles.json")
+                logger.info(f"{len(profiles)} Profile aus reddit_profiles.json geladen")
                 return profiles
             except Exception as e:
-                logger.warning(f"Failed to read reddit_profiles.json: {e}")
+                logger.warning(f"Lesen von reddit_profiles.json fehlgeschlagen: {e}")
 
-        # Try to read Twitter CSV format
+        # Twitter-CSV-Format versuchen
         twitter_profile_path = os.path.join(sim_dir, "twitter_profiles.csv")
         if os.path.exists(twitter_profile_path):
             try:
@@ -1313,12 +1313,12 @@ Return the sub-questions as a JSON list."""
                             "username": row.get("username", ""),
                             "bio": row.get("description", ""),
                             "persona": row.get("user_char", ""),
-                            "profession": "Unknown"
+                            "profession": "Unbekannt"
                         })
-                logger.info(f"Loaded {len(profiles)} profiles from twitter_profiles.csv")
+                logger.info(f"{len(profiles)} Profile aus twitter_profiles.csv geladen")
                 return profiles
             except Exception as e:
-                logger.warning(f"Failed to read twitter_profiles.csv: {e}")
+                logger.warning(f"Lesen von twitter_profiles.csv fehlgeschlagen: {e}")
 
         return profiles
 
@@ -1329,43 +1329,43 @@ Return the sub-questions as a JSON list."""
         simulation_requirement: str,
         max_agents: int
     ) -> tuple:
-        """Use LLM to select Agents for interview"""
+        """LLM zur Auswahl der zu interviewenden Agents verwenden"""
 
         agent_summaries = []
         for i, profile in enumerate(profiles):
             summary = {
                 "index": i,
                 "name": profile.get("realname", profile.get("username", f"Agent_{i}")),
-                "profession": profile.get("profession", "Unknown"),
+                "profession": profile.get("profession", "Unbekannt"),
                 "bio": profile.get("bio", "")[:200],
                 "interested_topics": profile.get("interested_topics", [])
             }
             agent_summaries.append(summary)
 
-        system_prompt = """You are a professional interview planning expert. Your task is to select the most suitable Agents for interview from the simulated Agent list based on the interview requirements.
+        system_prompt = """Du bist ein professioneller Interviewplanungsexperte. Deine Aufgabe ist es, basierend auf den Interviewanforderungen die am besten geeigneten Agents aus der simulierten Agent-Liste für das Interview auszuwählen.
 
-Selection Criteria:
-1. Agent's identity/profession is relevant to the interview topic
-2. Agent may hold unique or valuable perspectives
-3. Select diverse perspectives (e.g., supporters, opposers, neutral, experts, etc.)
-4. Prioritize roles directly related to the event
+Auswahlkriterien:
+1. Identität/Beruf des Agents ist relevant für das Interviewthema
+2. Agent könnte einzigartige oder wertvolle Perspektiven haben
+3. Diverse Perspektiven auswählen (z.B. Befürworter, Gegner, Neutrale, Experten usw.)
+4. Rollen mit direktem Bezug zum Ereignis bevorzugen
 
-Return JSON format:
+Rückgabe im JSON-Format:
 {
-    "selected_indices": [List of indices of selected Agents],
-    "reasoning": "Explanation of selection rationale"
+    "selected_indices": [Liste der Indizes der ausgewählten Agents],
+    "reasoning": "Erklärung der Auswahlbegründung"
 }"""
 
-        user_prompt = f"""Interview Requirement:
+        user_prompt = f"""Interviewanforderung:
 {interview_requirement}
 
-Simulation Background:
-{simulation_requirement if simulation_requirement else "Not provided"}
+Simulationshintergrund:
+{simulation_requirement if simulation_requirement else "Nicht angegeben"}
 
-Available Agent List ({len(agent_summaries)} total):
+Verfügbare Agent-Liste ({len(agent_summaries)} insgesamt):
 {json.dumps(agent_summaries, ensure_ascii=False, indent=2)}
 
-Please select up to {max_agents} most suitable Agents for interview and explain your selection rationale."""
+Bitte wähle bis zu {max_agents} am besten geeignete Agents für das Interview aus und erkläre deine Auswahlbegründung."""
 
         try:
             response = self.llm.chat_json(
@@ -1377,7 +1377,7 @@ Please select up to {max_agents} most suitable Agents for interview and explain 
             )
 
             selected_indices = response.get("selected_indices", [])[:max_agents]
-            reasoning = response.get("reasoning", "Automatically selected based on relevance")
+            reasoning = response.get("reasoning", "Automatisch basierend auf Relevanz ausgewählt")
 
             selected_agents = []
             valid_indices = []
@@ -1389,10 +1389,10 @@ Please select up to {max_agents} most suitable Agents for interview and explain 
             return selected_agents, valid_indices, reasoning
 
         except Exception as e:
-            logger.warning(f"LLM agent selection failed, using default selection: {e}")
+            logger.warning(f"LLM-Agent-Auswahl fehlgeschlagen, verwende Standardauswahl: {e}")
             selected = profiles[:max_agents]
             indices = list(range(min(max_agents, len(profiles))))
-            return selected, indices, "Using default selection strategy"
+            return selected, indices, "Verwende Standard-Auswahlstrategie"
 
     def _generate_interview_questions(
         self,
@@ -1400,29 +1400,29 @@ Please select up to {max_agents} most suitable Agents for interview and explain 
         simulation_requirement: str,
         selected_agents: List[Dict[str, Any]]
     ) -> List[str]:
-        """Use LLM to generate interview questions"""
+        """LLM zur Generierung von Interviewfragen verwenden"""
 
-        agent_roles = [a.get("profession", "Unknown") for a in selected_agents]
+        agent_roles = [a.get("profession", "Unbekannt") for a in selected_agents]
 
-        system_prompt = """You are a professional journalist/interviewer. Based on the interview requirements, generate 3-5 deep interview questions.
+        system_prompt = """Du bist ein professioneller Journalist/Interviewer. Generiere basierend auf den Interviewanforderungen 3-5 tiefgehende Interviewfragen.
 
-Question Requirements:
-1. Open-ended questions that encourage detailed answers
-2. Questions that may have different answers for different roles
-3. Cover multiple dimensions: facts, viewpoints, feelings, etc.
-4. Natural language, like real interviews
-5. Keep each question under 50 characters, concise and clear
-6. Ask directly, do not include background explanation or prefix
+Fragenanforderungen:
+1. Offene Fragen, die zu detaillierten Antworten ermutigen
+2. Fragen, die für verschiedene Rollen unterschiedliche Antworten haben könnten
+3. Mehrere Dimensionen abdecken: Fakten, Standpunkte, Gefühle usw.
+4. Natürliche Sprache, wie bei echten Interviews
+5. Jede Frage unter 50 Zeichen halten, prägnant und klar
+6. Direkt fragen, keine Hintergrundinformationen oder Präfixe einfügen
 
-Return JSON format: {"questions": ["question1", "question2", ...]}"""
+Rückgabe im JSON-Format: {"questions": ["Frage1", "Frage2", ...]}"""
 
-        user_prompt = f"""Interview Requirement: {interview_requirement}
+        user_prompt = f"""Interviewanforderung: {interview_requirement}
 
-Simulation Background: {simulation_requirement if simulation_requirement else "Not provided"}
+Simulationshintergrund: {simulation_requirement if simulation_requirement else "Nicht angegeben"}
 
-Interview Subject Roles: {', '.join(agent_roles)}
+Rollen der Interviewpartner: {', '.join(agent_roles)}
 
-Please generate 3-5 interview questions."""
+Bitte generiere 3-5 Interviewfragen."""
 
         try:
             response = self.llm.chat_json(
@@ -1433,14 +1433,14 @@ Please generate 3-5 interview questions."""
                 temperature=0.5
             )
 
-            return response.get("questions", [f"What is your perspective on {interview_requirement}?"])
+            return response.get("questions", [f"Was ist Ihre Perspektive zu {interview_requirement}?"])
 
         except Exception as e:
-            logger.warning(f"Failed to generate interview questions: {e}")
+            logger.warning(f"Generierung der Interviewfragen fehlgeschlagen: {e}")
             return [
-                f"What is your perspective on {interview_requirement}?",
-                "What impact does this have on you or the group you represent?",
-                "How do you think this issue should be solved or improved?"
+                f"Was ist Ihre Perspektive zu {interview_requirement}?",
+                "Welche Auswirkungen hat dies auf Sie oder die Gruppe, die Sie vertreten?",
+                "Wie sollte dieses Problem Ihrer Meinung nach gelöst oder verbessert werden?"
             ]
 
     def _generate_interview_summary(
@@ -1448,37 +1448,37 @@ Please generate 3-5 interview questions."""
         interviews: List[AgentInterview],
         interview_requirement: str
     ) -> str:
-        """Generate interview summary"""
+        """Interviewzusammenfassung generieren"""
 
         if not interviews:
-            return "No interviews completed"
+            return "Keine Interviews abgeschlossen"
 
         interview_texts = []
         for interview in interviews:
             interview_texts.append(f"[{interview.agent_name} ({interview.agent_role})]\n{interview.response[:500]}")
 
-        system_prompt = """You are a professional news editor. Please generate an interview summary based on the responses from multiple interviewees.
+        system_prompt = """Du bist ein professioneller Nachrichtenredakteur. Bitte generiere eine Interviewzusammenfassung basierend auf den Antworten mehrerer Befragter.
 
-Summary Requirements:
-1. Extract main viewpoints from all parties
-2. Point out consensus and disagreement among viewpoints
-3. Highlight valuable quotes
-4. Remain objective and neutral, do not favor any side
-5. Keep it under 1000 words
+Zusammenfassungsanforderungen:
+1. Hauptstandpunkte aller Parteien extrahieren
+2. Konsens und Meinungsverschiedenheiten zwischen den Standpunkten aufzeigen
+3. Wertvolle Zitate hervorheben
+4. Objektiv und neutral bleiben, keine Seite bevorzugen
+5. Unter 1000 Wörter halten
 
-Format Constraints (Must Follow):
-- Use plain text paragraphs, separated by blank lines
-- Do not use Markdown headings (e.g., #, ##, ###)
-- Do not use dividers (e.g., ---, ***)
-- Use appropriate quotes when citing interviewees
-- Can use **bold** to mark keywords, but do not use other Markdown syntax"""
+Formatvorgaben (müssen eingehalten werden):
+- Fließtextabsätze verwenden, durch Leerzeilen getrennt
+- Keine Markdown-Überschriften verwenden (z.B. #, ##, ###)
+- Keine Trennlinien verwenden (z.B. ---, ***)
+- Angemessene Zitate verwenden, wenn Befragte zitiert werden
+- **Fettdruck** zur Markierung von Schlüsselwörtern verwenden, aber keine andere Markdown-Syntax"""
 
-        user_prompt = f"""Interview Topic: {interview_requirement}
+        user_prompt = f"""Interviewthema: {interview_requirement}
 
-Interview Content:
+Interviewinhalt:
 {"".join(interview_texts)}
 
-Please generate an interview summary."""
+Bitte generiere eine Interviewzusammenfassung."""
 
         try:
             summary = self.llm.chat(
@@ -1492,5 +1492,5 @@ Please generate an interview summary."""
             return summary
 
         except Exception as e:
-            logger.warning(f"Failed to generate interview summary: {e}")
-            return f"Interviewed {len(interviews)} interviewees, including: " + ", ".join([i.agent_name for i in interviews])
+            logger.warning(f"Generierung der Interviewzusammenfassung fehlgeschlagen: {e}")
+            return f"{len(interviews)} Befragte interviewt, darunter: " + ", ".join([i.agent_name for i in interviews])
