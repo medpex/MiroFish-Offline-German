@@ -4,30 +4,31 @@
 
 # MiroFish-Offline
 
-**Fully local fork of [MiroFish](https://github.com/666ghj/MiroFish) — no cloud APIs required. English UI.**
+**Vollständig lokaler Fork von [MiroFish-Offline](https://github.com/nikmcfly/MiroFish-Offline) — komplett auf Deutsch übersetzt. Keine Cloud-APIs nötig.**
 
-*A multi-agent swarm intelligence engine that simulates public opinion, market sentiment, and social dynamics. Entirely on your hardware.*
+*Eine Multi-Agenten-Schwarmintelligenz-Engine zur Simulation von öffentlicher Meinung, Marktstimmung und sozialer Dynamik. Läuft komplett auf deiner eigenen Hardware.*
 
-[![GitHub Stars](https://img.shields.io/github/stars/nikmcfly/MiroFish-Offline?style=flat-square&color=DAA520)](https://github.com/nikmcfly/MiroFish-Offline/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/nikmcfly/MiroFish-Offline?style=flat-square)](https://github.com/nikmcfly/MiroFish-Offline/network)
+[![GitHub Stars](https://img.shields.io/github/stars/medpex/MiroFish-Offline?style=flat-square&color=DAA520)](https://github.com/medpex/MiroFish-Offline/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/medpex/MiroFish-Offline?style=flat-square)](https://github.com/medpex/MiroFish-Offline/network)
 [![Docker](https://img.shields.io/badge/Docker-Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://hub.docker.com/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue?style=flat-square)](./LICENSE)
 
 </div>
 
-## What is this?
+## Was ist das?
 
-MiroFish is a multi-agent simulation engine: upload any document (press release, policy draft, financial report), and it generates hundreds of AI agents with unique personalities that simulate the public reaction on social media. Posts, arguments, opinion shifts — hour by hour.
+MiroFish ist eine Multi-Agenten-Simulations-Engine: Lade ein beliebiges Dokument hoch (Pressemitteilung, Strategiepapier, Marktanalyse) und das System generiert hunderte KI-Agenten mit einzigartigen Persönlichkeiten, die die öffentliche Reaktion in sozialen Medien simulieren. Posts, Argumente, Meinungsverschiebungen — Stunde für Stunde.
 
-The [original MiroFish](https://github.com/666ghj/MiroFish) was built for the Chinese market (Chinese UI, Zep Cloud for knowledge graphs, DashScope API). This fork makes it **fully local and fully English**:
+Das [Original-MiroFish](https://github.com/666ghj/MiroFish) wurde für den chinesischen Markt entwickelt. [MiroFish-Offline](https://github.com/nikmcfly/MiroFish-Offline) hat es auf Englisch übersetzt und komplett lokal lauffähig gemacht. **Dieser Fork ist die vollständig deutsche Version:**
 
-| Original MiroFish | MiroFish-Offline |
-|---|---|
-| Chinese UI | **English UI** (1,000+ strings translated) |
-| Zep Cloud (graph memory) | **Neo4j Community Edition 5.15** |
-| DashScope / OpenAI API (LLM) | **Ollama** (qwen2.5, llama3, etc.) |
-| Zep Cloud embeddings | **nomic-embed-text** via Ollama |
-| Cloud API keys required | **Zero cloud dependencies** |
+| Original MiroFish | MiroFish-Offline (EN) | Dieser Fork (DE) |
+|---|---|---|
+| Chinesische UI | Englische UI | **Deutsche UI** |
+| Chinesische LLM-Prompts | Englische LLM-Prompts | **Deutsche LLM-Prompts** |
+| Zep Cloud (Graph Memory) | Neo4j Community Edition | **Neo4j Community Edition** |
+| DashScope / OpenAI API | Ollama (lokal) | **Ollama (lokal)** |
+| Peking-Zeitzone | Peking-Zeitzone | **MEZ (Mitteleuropäische Zeit)** |
+| Cloud-API-Keys nötig | Keine Cloud-Abhängigkeiten | **Keine Cloud-Abhängigkeiten** |
 
 ## Workflow
 
