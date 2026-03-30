@@ -73,11 +73,13 @@ class LLMClient:
         if response_format:
             kwargs["response_format"] = response_format
 
-        # Für Ollama: num_ctx über extra_body übergeben, um Prompt-Abschneidung zu verhindern
-        if self._is_ollama() and self._num_ctx:
-            kwargs["extra_body"] = {
-                "options": {"num_ctx": self._num_ctx}
-            }
+        # Für Ollama: num_ctx und Thinking-Deaktivierung über extra_body
+        if self._is_ollama():
+            extra = {}
+            if self._num_ctx:
+                extra["num_ctx"] = self._num_ctx
+            extra["use_mmap"] = True
+            kwargs["extra_body"] = extra
 
         response = self.client.chat.completions.create(**kwargs)
         content = response.choices[0].message.content
@@ -89,7 +91,7 @@ class LLMClient:
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.3,
-        max_tokens: int = 4096
+        max_tokens: int = 16384
     ) -> Dict[str, Any]:
         """
         Chat-Anfrage senden und JSON zurückgeben
@@ -102,8 +104,15 @@ class LLMClient:
         Returns:
             Geparste JSON-Objekt
         """
+        # Thinking-Modelle (qwen3/qwen3.5) verbrauchen bei großen Prompts
+        # alle Tokens für <think>-Inhalte. Thinking deaktivieren für JSON-Anfragen.
+        patched_messages = list(messages)
+        if patched_messages and self._is_ollama():
+            last = patched_messages[-1]
+            patched_messages[-1] = {**last, "content": last["content"] + "\n/no_think"}
+
         response = self.chat(
-            messages=messages,
+            messages=patched_messages,
             temperature=temperature,
             max_tokens=max_tokens,
             response_format={"type": "json_object"}

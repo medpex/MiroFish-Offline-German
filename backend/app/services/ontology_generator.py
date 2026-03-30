@@ -44,11 +44,11 @@ Bitte geben Sie JSON im folgenden Format aus:
 {
     "entity_types": [
         {
-            "name": "Entitätstypname (Englisch, PascalCase)",
-            "description": "Kurzbeschreibung (Englisch, maximal 100 Zeichen)",
+            "name": "Entitätstypname (Deutsch, ein Wort)",
+            "description": "Kurzbeschreibung (Deutsch, maximal 100 Zeichen)",
             "attributes": [
                 {
-                    "name": "Attributname (Englisch, snake_case)",
+                    "name": "attribut_name (snake_case)",
                     "type": "text",
                     "description": "Attributbeschreibung"
                 }
@@ -58,8 +58,8 @@ Bitte geben Sie JSON im folgenden Format aus:
     ],
     "edge_types": [
         {
-            "name": "Beziehungstypname (Englisch, UPPER_SNAKE_CASE)",
-            "description": "Kurzbeschreibung (Englisch, maximal 100 Zeichen)",
+            "name": "Beziehungstypname (UPPER_SNAKE_CASE)",
+            "description": "Kurzbeschreibung (Deutsch, maximal 100 Zeichen)",
             "source_targets": [
                 {"source": "Quellentitätstyp", "target": "Zielentitätstyp"}
             ],
@@ -82,17 +82,17 @@ Ihre 10 Entitätstypen müssen die folgende Hierarchie umfassen:
 
 A. **Fallback-Typen (müssen enthalten sein, an den letzten 2 Positionen der Liste)**:
    - `Person`: Fallback-Typ für jede natürliche Person. Wenn eine Person nicht zu anderen spezifischeren Personentypen passt, verwenden Sie diesen.
-   - `Organization`: Fallback-Typ für jede Organisation. Wenn eine Organisation nicht zu anderen spezifischeren Organisationstypen passt, verwenden Sie diesen.
+   - `Organisation`: Fallback-Typ für jede Organisation. Wenn eine Organisation nicht zu anderen spezifischeren Organisationstypen passt, verwenden Sie diesen.
 
 B. **Spezifische Typen (8, basierend auf dem Textinhalt entworfen)**:
    - Entwerfen Sie spezifischere Typen für die im Text vorkommenden Hauptfiguren
-   - Beispiel: Wenn der Text akademische Ereignisse betrifft, können `Student`, `Professor`, `University` verwendet werden
-   - Beispiel: Wenn der Text geschäftliche Ereignisse betrifft, können `Company`, `CEO`, `Employee` verwendet werden
+   - Beispiel: Wenn der Text akademische Ereignisse betrifft, können `Student`, `Professor`, `Universität` verwendet werden
+   - Beispiel: Wenn der Text geschäftliche Ereignisse betrifft, können `Unternehmen`, `Geschäftsführer`, `Mitarbeiter` verwendet werden
 
 **Warum Fallback-Typen benötigt werden**:
 - Im Text erscheinen verschiedene Personen, wie „Lehrer", „zufällige Person", „ein Internetnutzer"
 - Wenn kein spezifischer Typ passt, sollten sie als `Person` klassifiziert werden
-- Ebenso sollten kleine Organisationen und temporäre Gruppen als `Organization` klassifiziert werden
+- Ebenso sollten kleine Organisationen und temporäre Gruppen als `Organisation` klassifiziert werden
 
 **Designprinzipien für spezifische Typen**:
 - Identifizieren Sie häufig vorkommende oder Schlüsselrollentypen aus dem Text
@@ -117,41 +117,45 @@ B. **Spezifische Typen (8, basierend auf dem Textinhalt entworfen)**:
 - Student: Student/Studentin
 - Professor: Professor/Wissenschaftler
 - Journalist: Journalist/Journalistin
-- Celebrity: Prominente/Internet-Prominenz
-- Executive: Führungskraft
-- Official: Regierungsbeamter
-- Lawyer: Rechtsanwalt/Rechtsanwältin
-- Doctor: Arzt/Ärztin
+- Prominenter: Prominente/Internet-Prominenz
+- Führungskraft: Geschäftsführer/Manager
+- Beamter: Regierungsbeamter
+- Anwalt: Rechtsanwalt/Rechtsanwältin
+- Arzt: Arzt/Ärztin
+- Mitarbeiter: Angestellter/Beschäftigter
+- Betriebsrat: Betriebsratsmitglied/Arbeitnehmervertreter
+- Bereichsleiter: Abteilungs-/Bereichsleiter
 
 **Einzelpersonentypen (Fallback)**:
 - Person: Jede natürliche Person (verwenden, wenn sie nicht zu anderen spezifischen Typen passt)
 
 **Organisationstypen (spezifisch)**:
-- University: Universität
-- Company: Unternehmen/Firma
-- GovernmentAgency: Regierungsbehörde
-- MediaOutlet: Medieninstitution
-- Hospital: Krankenhaus
-- School: Grund-/Sekundarschule
+- Universität: Hochschule/Universität
+- Unternehmen: Firma/Betrieb
+- Regierungsbehörde: Staatliche Behörde/Amt
+- Medienhaus: Medieninstitution/Verlag/Sender
+- Krankenhaus: Klinik/Krankenhaus
+- Schule: Grund-/Sekundarschule
 - NGO: Nichtregierungsorganisation
+- Gewerkschaft: Gewerkschaft/Arbeitnehmervertretung
 
 **Organisationstypen (Fallback)**:
-- Organization: Jede Organisation (verwenden, wenn sie nicht zu anderen spezifischen Typen passt)
+- Organisation: Jede Organisation (verwenden, wenn sie nicht zu anderen spezifischen Typen passt)
 
 ## Beziehungstyp-Referenz
 
-- WORKS_FOR: Arbeitet für
-- STUDIES_AT: Studiert an
-- AFFILIATED_WITH: Zugehörig zu
-- REPRESENTS: Vertritt
-- REGULATES: Reguliert
-- REPORTS_ON: Berichtet über
-- COMMENTS_ON: Kommentiert
-- RESPONDS_TO: Antwortet auf
-- SUPPORTS: Unterstützt
-- OPPOSES: Widerspricht
-- COLLABORATES_WITH: Arbeitet zusammen mit
-- COMPETES_WITH: Konkurriert mit
+- ARBEITET_FUER: Arbeitet für
+- STUDIERT_AN: Studiert an
+- GEHOERT_ZU: Zugehörig zu
+- VERTRITT: Vertritt
+- REGULIERT: Reguliert
+- BERICHTET_UEBER: Berichtet über
+- KOMMENTIERT: Kommentiert
+- ANTWORTET_AUF: Antwortet auf
+- UNTERSTUETZT: Unterstützt
+- WIDERSPRICHT: Widerspricht
+- KOOPERIERT_MIT: Arbeitet zusammen mit
+- KONKURRIERT_MIT: Konkurriert mit
 """
 
 
@@ -246,7 +250,7 @@ Entwerfen Sie basierend auf dem obigen Inhalt Entitätstypen und Beziehungstypen
 
 **Zu befolgende Regeln**:
 1. Es müssen genau 10 Entitätstypen ausgegeben werden
-2. Die letzten 2 müssen Fallback-Typen sein: Person (Einzelperson-Fallback) und Organization (Organisation-Fallback)
+2. Die letzten 2 müssen Fallback-Typen sein: Person (Einzelperson-Fallback) und Organisation (Organisation-Fallback)
 3. Die ersten 8 sind spezifische Typen, die basierend auf dem Textinhalt entworfen werden
 4. Alle Entitätstypen müssen reale Subjekte sein, die Meinungen äußern können, keine abstrakten Konzepte
 5. Attributnamen dürfen keine reservierten Wörter wie name, uuid, group_id verwenden, verwenden Sie stattdessen full_name, org_name usw.
@@ -291,20 +295,20 @@ Entwerfen Sie basierend auf dem obigen Inhalt Entitätstypen und Beziehungstypen
         # Fallback-Typdefinitionen
         person_fallback = {
             "name": "Person",
-            "description": "Any individual person not fitting other specific person types.",
+            "description": "Jede natürliche Person, die nicht zu spezifischeren Typen passt.",
             "attributes": [
-                {"name": "full_name", "type": "text", "description": "Vollständiger Name der Person"},
-                {"name": "role", "type": "text", "description": "Rolle oder Beruf"}
+                {"name": "voller_name", "type": "text", "description": "Vollständiger Name der Person"},
+                {"name": "rolle", "type": "text", "description": "Rolle oder Beruf"}
             ],
             "examples": ["gewöhnlicher Bürger", "anonymer Internetnutzer"]
         }
 
         organization_fallback = {
-            "name": "Organization",
-            "description": "Any organization not fitting other specific organization types.",
+            "name": "Organisation",
+            "description": "Jede Organisation, die nicht zu spezifischeren Typen passt.",
             "attributes": [
                 {"name": "org_name", "type": "text", "description": "Name der Organisation"},
-                {"name": "org_type", "type": "text", "description": "Art der Organisation"}
+                {"name": "org_typ", "type": "text", "description": "Art der Organisation"}
             ],
             "examples": ["Kleinunternehmen", "Gemeinschaftsgruppe"]
         }
@@ -312,7 +316,7 @@ Entwerfen Sie basierend auf dem obigen Inhalt Entitätstypen und Beziehungstypen
         # Prüfen, ob Fallback-Typen bereits vorhanden sind
         entity_names = {e["name"] for e in result["entity_types"]}
         has_person = "Person" in entity_names
-        has_organization = "Organization" in entity_names
+        has_organization = "Organisation" in entity_names
 
         # Hinzuzufügende Fallback-Typen
         fallbacks_to_add = []
@@ -439,7 +443,7 @@ Entwerfen Sie basierend auf dem obigen Inhalt Entitätstypen und Beziehungstypen
             source_targets = edge.get("source_targets", [])
             if source_targets:
                 st_list = ', '.join([
-                    f'{{"source": "{st.get("source", "Entity")}", "target": "{st.get("target", "Entity")}"}}'
+                    f'{{"source": "{st.get("source", "Entität")}", "target": "{st.get("target", "Entität")}"}}'
                     for st in source_targets
                 ])
                 code_lines.append(f'    "{name}": [{st_list}],')

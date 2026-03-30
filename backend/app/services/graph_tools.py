@@ -71,7 +71,7 @@ class NodeInfo:
 
     def to_text(self) -> str:
         """In Textformat umwandeln"""
-        entity_type = next((la for la in self.labels if la not in ["Entity", "Node"]), "Unbekannter Typ")
+        entity_type = next((la for la in self.labels if la not in ["Entität", "Node"]), "Unbekannter Typ")
         return f"Entität: {self.name} (Typ: {entity_type})\nZusammenfassung: {self.summary}"
 
 
@@ -260,7 +260,7 @@ class PanoramaResult:
         if self.all_nodes:
             text_parts.append(f"\n### Beteiligte Entitäten")
             for node in self.all_nodes:
-                entity_type = next((la for la in node.labels if la not in ["Entity", "Node"]), "Entität")
+                entity_type = next((la for la in node.labels if la not in ["Entität", "Node"]), "Entität")
                 text_parts.append(f"- **{node.name}** ({entity_type})")
 
         return "\n".join(text_parts)
@@ -749,7 +749,7 @@ class GraphToolsService:
         entity_types = {}
         for node in nodes:
             for label in node.labels:
-                if label not in ["Entity", "Node"]:
+                if label not in ["Entität", "Node"]:
                     entity_types[label] = entity_types.get(label, 0) + 1
 
         relation_types = {}
@@ -785,7 +785,7 @@ class GraphToolsService:
 
         entities = []
         for node in all_nodes:
-            custom_labels = [la for la in node.labels if la not in ["Entity", "Node"]]
+            custom_labels = [la for la in node.labels if la not in ["Entität", "Node"]]
             if custom_labels:
                 entities.append({
                     "name": node.name,
@@ -896,7 +896,7 @@ class GraphToolsService:
                 node = self.get_node_detail(uuid)
                 if node:
                     node_map[uuid] = node
-                    entity_type = next((la for la in node.labels if la not in ["Entity", "Node"]), "Entity")
+                    entity_type = next((la for la in node.labels if la not in ["Entität", "Node"]), "Entität")
 
                     related_facts = [
                         f for f in all_facts

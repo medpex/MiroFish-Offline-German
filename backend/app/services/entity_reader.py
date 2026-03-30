@@ -41,7 +41,7 @@ class EntityNode:
     def get_entity_type(self) -> Optional[str]:
         """Entitätstyp abrufen (Standard-Entity-Label ausschließen)"""
         for label in self.labels:
-            if label not in ["Entity", "Node"]:
+            if label not in ["Entität", "Node"]:
                 return label
         return None
 
@@ -69,7 +69,7 @@ class EntityReader:
 
     Hauptfunktionen:
     1. Alle Knoten aus dem Graph lesen
-    2. Aussagekräftige Entitätstyp-Knoten herausfiltern (Knoten, deren Labels nicht nur "Entity" sind)
+    2. Aussagekräftige Entitätstyp-Knoten herausfiltern (Knoten, deren Labels nicht nur "Entität" sind)
     3. Zugehörige Kanten und verknüpfte Knoteninformationen für jede Entität abrufen
     """
 
@@ -132,8 +132,8 @@ class EntityReader:
         Knoten mit aussagekräftigen Entitätstypen filtern und extrahieren.
 
         Filterlogik:
-        - Wenn die Labels eines Knotens nur "Entity" enthalten, hat er keinen aussagekräftigen Typ und wird übersprungen.
-        - Wenn die Labels eines Knotens andere Labels als "Entity" und "Node" enthalten, hat er einen aussagekräftigen Typ und wird beibehalten.
+        - Wenn die Labels eines Knotens nur "Entität" enthalten, hat er keinen aussagekräftigen Typ und wird übersprungen.
+        - Wenn die Labels eines Knotens andere Labels als "Entität" und "Node" enthalten, hat er einen aussagekräftigen Typ und wird beibehalten.
 
         Args:
             graph_id: Graph-ID
@@ -162,8 +162,8 @@ class EntityReader:
         for node in all_nodes:
             labels = node.get("labels", [])
 
-            # Filterlogik: Labels müssen Labels außer "Entity" und "Node" enthalten
-            custom_labels = [la for la in labels if la not in ["Entity", "Node"]]
+            # Filterlogik: Labels müssen Labels außer "Entität" und "Node" enthalten
+            custom_labels = [la for la in labels if la not in ["Entität", "Node"]]
 
             if not custom_labels:
                 # Nur Standard-Labels, überspringen
@@ -326,7 +326,7 @@ class EntityReader:
 
         Args:
             graph_id: Graph-ID
-            entity_type: Entitätstyp (z.B. "Student", "PublicFigure" usw.)
+            entity_type: Entitätstyp (z.B. "Student", "Prominenter" usw.)
             enrich_with_edges: Ob zugehörige Kanteninformationen für jede Entität abgerufen werden sollen.
 
         Returns:

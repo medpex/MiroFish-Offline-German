@@ -465,7 +465,7 @@ const entityTypes = computed(() => {
   const colors = ['#FF6B35', '#004E89', '#7B2D8E', '#1A936F', '#C5283D', '#E9724C']
   
   graphData.value.nodes.forEach(node => {
-    const type = node.labels?.find(l => l !== 'Entity') || 'Entity'
+    const type = node.labels?.find(l => l !== 'Entität') || 'Entität'
     if (!typeMap[type]) {
       typeMap[type] = { name: type, count: 0, color: colors[Object.keys(typeMap).length % colors.length] }
     }
@@ -521,7 +521,7 @@ const selectNode = (nodeData, color) => {
     type: 'node',
     data: nodeData,
     color: color,
-    entityType: nodeData.labels?.find(l => l !== 'Entity' && l !== 'Node') || 'Entity'
+    entityType: nodeData.labels?.find(l => l !== 'Entität' && l !== 'Node') || 'Entität'
   }
 }
 
@@ -918,7 +918,7 @@ const renderGraph = () => {
   const nodes = nodesData.map(n => ({
     id: n.uuid,
     name: n.name || 'Unbenannt',
-    type: n.labels?.find(l => l !== 'Entity' && l !== 'Node') || 'Entity',
+    type: n.labels?.find(l => l !== 'Entität' && l !== 'Node') || 'Entität',
     rawData: n // Save original data
   }))
 

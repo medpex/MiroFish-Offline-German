@@ -800,9 +800,9 @@ const startPrepareSimulation = async () => {
       // Set immediatelyExpected Agent Total（FromprepareInterface return value retrieval）
       if (res.data.expected_entities_count) {
         expectedTotal.value = res.data.expected_entities_count
-        addLog(`FromNeo4jGraph read ${res.data.expected_entities_count} entities`)
+        addLog(`Aus Neo4j-Graph ${res.data.expected_entities_count} Entitäten gelesen`)
         if (res.data.entity_types && res.data.entity_types.length > 0) {
-          addLog(`  └─ Entity Type: ${res.data.entity_types.join(', ')}`)
+          addLog(`  └─ Entitätstypen: ${res.data.entity_types.join(', ')}`)
         }
       }
       

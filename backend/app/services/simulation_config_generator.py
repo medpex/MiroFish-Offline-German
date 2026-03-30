@@ -839,9 +839,9 @@ Simulationsanforderungen: {simulation_requirement}
 ## Aufgabe
 Generieren Sie eine Aktivitätskonfiguration für jede Entität, beachten Sie dabei:
 - **Zeiten folgen dem deutschen Arbeitszeitplan (MEZ)**: Fast keine Aktivität 0-5 Uhr, am aktivsten 19-22 Uhr
-- **Offizielle Institutionen** (University/GovernmentAgency): Niedrige Aktivität (0,1-0,3), aktiv während der Arbeitszeit (9-17), langsame Reaktion (60-240 Min.), hoher Einfluss (2,5-3,0)
-- **Medien** (MediaOutlet): Mittlere Aktivität (0,4-0,6), ganztägig aktiv (8-23), schnelle Reaktion (5-30 Min.), hoher Einfluss (2,0-2,5)
-- **Einzelpersonen** (Student/Person/Alumni): Hohe Aktivität (0,6-0,9), hauptsächlich Abendaktivität (18-23), schnelle Reaktion (1-15 Min.), niedriger Einfluss (0,8-1,2)
+- **Offizielle Institutionen** (Universität/Regierungsbehörde): Niedrige Aktivität (0,1-0,3), aktiv während der Arbeitszeit (9-17), langsame Reaktion (60-240 Min.), hoher Einfluss (2,5-3,0)
+- **Medien** (Medienhaus): Mittlere Aktivität (0,4-0,6), ganztägig aktiv (8-23), schnelle Reaktion (5-30 Min.), hoher Einfluss (2,0-2,5)
+- **Einzelpersonen** (Student/Person/Mitarbeiter): Hohe Aktivität (0,6-0,9), hauptsächlich Abendaktivität (18-23), schnelle Reaktion (1-15 Min.), niedriger Einfluss (0,8-1,2)
 - **Öffentliche Persönlichkeiten/Experten**: Mittlere Aktivität (0,4-0,6), mittlerer bis hoher Einfluss (1,5-2,0)
 
 Geben Sie JSON-Format zurück (kein Markdown):
@@ -905,7 +905,7 @@ Geben Sie JSON-Format zurück (kein Markdown):
         """Einzelne Agent-Konfiguration regelbasiert generieren (deutscher Arbeitszeitplan)"""
         entity_type = (entity.get_entity_type() or "Unbekannt").lower()
 
-        if entity_type in ["university", "governmentagency", "ngo"]:
+        if entity_type in ["universität", "regierungsbehörde", "ngo", "gewerkschaft"]:
             # Offizielle Institutionen: Arbeitszeitaktivität, niedrige Frequenz, hoher Einfluss
             return {
                 "activity_level": 0.2,
@@ -918,7 +918,7 @@ Geben Sie JSON-Format zurück (kein Markdown):
                 "stance": "neutral",
                 "influence_weight": 3.0
             }
-        elif entity_type in ["mediaoutlet"]:
+        elif entity_type in ["medienhaus"]:
             # Medien: ganztägige Aktivität, mittlere Frequenz, hoher Einfluss
             return {
                 "activity_level": 0.5,
@@ -931,8 +931,8 @@ Geben Sie JSON-Format zurück (kein Markdown):
                 "stance": "observer",
                 "influence_weight": 2.5
             }
-        elif entity_type in ["professor", "expert", "official"]:
-            # Experten/Professoren: Arbeitszeit + Abendaktivität, mittlere Frequenz
+        elif entity_type in ["professor", "führungskraft", "beamter", "bereichsleiter"]:
+            # Experten/Führungskräfte: Arbeitszeit + Abendaktivität, mittlere Frequenz
             return {
                 "activity_level": 0.4,
                 "posts_per_hour": 0.3,
@@ -944,7 +944,7 @@ Geben Sie JSON-Format zurück (kein Markdown):
                 "stance": "neutral",
                 "influence_weight": 2.0
             }
-        elif entity_type in ["student"]:
+        elif entity_type in ["student", "mitarbeiter", "betriebsrat"]:
             # Studenten: hauptsächlich abends, hohe Frequenz
             return {
                 "activity_level": 0.8,

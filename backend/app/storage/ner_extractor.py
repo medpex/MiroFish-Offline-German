@@ -177,7 +177,7 @@ class NERExtractor:
             if not isinstance(entity, dict):
                 continue
             name = str(entity.get("name", "")).strip()
-            etype = str(entity.get("type", "Entity")).strip()
+            etype = str(entity.get("type", "Entität")).strip()
             if not name:
                 continue
 
@@ -216,7 +216,7 @@ class NERExtractor:
             if source.lower() not in entity_names_lower:
                 cleaned_entities.append({
                     "name": source,
-                    "type": "Entity",
+                    "type": "Entität",
                     "attributes": {},
                 })
                 entity_names_lower.add(source.lower())
@@ -224,7 +224,7 @@ class NERExtractor:
             if target.lower() not in entity_names_lower:
                 cleaned_entities.append({
                     "name": target,
-                    "type": "Entity",
+                    "type": "Entität",
                     "attributes": {},
                 })
                 entity_names_lower.add(target.lower())

@@ -12,7 +12,7 @@ FOR (g:Graph) REQUIRE g.graph_id IS UNIQUE
 
 CREATE_ENTITY_UUID_CONSTRAINT = """
 CREATE CONSTRAINT entity_uuid IF NOT EXISTS
-FOR (n:Entity) REQUIRE n.uuid IS UNIQUE
+FOR (n:Entität) REQUIRE n.uuid IS UNIQUE
 """
 
 CREATE_EPISODE_UUID_CONSTRAINT = """
@@ -23,7 +23,7 @@ FOR (ep:Episode) REQUIRE ep.uuid IS UNIQUE
 # Vector indexes (Neo4j 5.11+)
 CREATE_ENTITY_VECTOR_INDEX = """
 CREATE VECTOR INDEX entity_embedding IF NOT EXISTS
-FOR (n:Entity) ON (n.embedding)
+FOR (n:Entität) ON (n.embedding)
 OPTIONS {indexConfig: {
     `vector.dimensions`: 768,
     `vector.similarity_function`: 'cosine'
@@ -42,7 +42,7 @@ OPTIONS {indexConfig: {
 # Fulltext indexes (for BM25 keyword search)
 CREATE_ENTITY_FULLTEXT_INDEX = """
 CREATE FULLTEXT INDEX entity_fulltext IF NOT EXISTS
-FOR (n:Entity) ON EACH [n.name, n.summary]
+FOR (n:Entität) ON EACH [n.name, n.summary]
 """
 
 CREATE_FACT_FULLTEXT_INDEX = """

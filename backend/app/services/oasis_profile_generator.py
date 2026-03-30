@@ -218,7 +218,7 @@ class OasisProfileGenerator:
         Returns:
             OasisAgentProfile
         """
-        entity_type = entity.get_entity_type() or "Entity"
+        entity_type = entity.get_entity_type() or "Entität"
 
         # Grundinformationen
         name = entity.name
@@ -405,7 +405,7 @@ class OasisProfileGenerator:
                 node_summary = node.get("summary", "")
 
                 # Standard-Labels herausfiltern
-                custom_labels = [l for l in node_labels if l not in ["Entity", "Node"]]
+                custom_labels = [l for l in node_labels if l not in ["Entität", "Node"]]
                 label_str = f" ({', '.join(custom_labels)})" if custom_labels else ""
 
                 if node_summary:
@@ -862,7 +862,7 @@ Wichtig:
 
         def generate_single_profile(idx: int, entity: EntityNode) -> tuple:
             """Worker-Funktion zur Generierung eines einzelnen Profils"""
-            entity_type = entity.get_entity_type() or "Entity"
+            entity_type = entity.get_entity_type() or "Entität"
 
             try:
                 profile = self.generate_profile_from_entity(
@@ -906,7 +906,7 @@ Wichtig:
             # Ergebnisse sammeln
             for future in concurrent.futures.as_completed(future_to_entity):
                 idx, entity = future_to_entity[future]
-                entity_type = entity.get_entity_type() or "Entity"
+                entity_type = entity.get_entity_type() or "Entität"
 
                 try:
                     result_idx, profile, error = future.result()

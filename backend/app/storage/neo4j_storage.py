@@ -248,7 +248,7 @@ class Neo4jStorage(GraphStorage):
                     # MERGE nach graph_id + Kleinbuchstaben-Name zur Deduplizierung
                     result = tx.run(
                         """
-                        MERGE (n:Entity {graph_id: $gid, name_lower: $name_lower})
+                        MERGE (n:Entität {graph_id: $gid, name_lower: $name_lower})
                         ON CREATE SET
                             n.uuid = $uuid,
                             n.name = $name,
@@ -279,11 +279,11 @@ class Neo4jStorage(GraphStorage):
                 entity_uuid_map[ename.lower()] = actual_uuid
 
                 # Entitätstyp-Label hinzufügen
-                if etype and etype != "Entity":
+                if etype and etype != "Entität":
                     try:
                         def _add_label(tx, _name_lower=ename.lower()):
                             tx.run(
-                                f"MATCH (n:Entity {{graph_id: $gid, name_lower: $nl}}) SET n:`{etype}`",
+                                f"MATCH (n:Entität {{graph_id: $gid, name_lower: $nl}}) SET n:`{etype}`",
                                 gid=graph_id,
                                 nl=_name_lower,
                             )
@@ -317,8 +317,8 @@ class Neo4jStorage(GraphStorage):
                                      _episode_id=episode_id, _now=now):
                     tx.run(
                         """
-                        MATCH (src:Entity {uuid: $src_uuid})
-                        MATCH (tgt:Entity {uuid: $tgt_uuid})
+                        MATCH (src:Entität {uuid: $src_uuid})
+                        MATCH (tgt:Entität {uuid: $tgt_uuid})
                         CREATE (src)-[r:RELATION {
                             uuid: $uuid,
                             graph_id: $gid,
@@ -392,7 +392,7 @@ class Neo4jStorage(GraphStorage):
         def _read(tx):
             result = tx.run(
                 """
-                MATCH (n:Entity {graph_id: $gid})
+                MATCH (n:Entität {graph_id: $gid})
                 RETURN n, labels(n) AS labels
                 ORDER BY n.created_at DESC
                 LIMIT $limit
@@ -408,7 +408,7 @@ class Neo4jStorage(GraphStorage):
     def get_node(self, uuid: str) -> Optional[Dict[str, Any]]:
         def _read(tx):
             result = tx.run(
-                "MATCH (n:Entity {uuid: $uuid}) RETURN n, labels(n) AS labels",
+                "MATCH (n:Entität {uuid: $uuid}) RETURN n, labels(n) AS labels",
                 uuid=uuid,
             )
             record = result.single()
@@ -424,7 +424,7 @@ class Neo4jStorage(GraphStorage):
         def _read(tx):
             result = tx.run(
                 """
-                MATCH (n:Entity {uuid: $uuid})-[r:RELATION]-(m:Entity)
+                MATCH (n:Entität {uuid: $uuid})-[r:RELATION]-(m:Entität)
                 RETURN r, startNode(r).uuid AS src_uuid, endNode(r).uuid AS tgt_uuid
                 """,
                 uuid=node_uuid,
@@ -441,7 +441,7 @@ class Neo4jStorage(GraphStorage):
         def _read(tx):
             # Dynamisches Label in Abfrage (sicher — Label kommt aus Ontologie, nicht aus Benutzereingabe)
             query = f"""
-                MATCH (n:Entity:`{label}` {{graph_id: $gid}})
+                MATCH (n:Entität:`{label}` {{graph_id: $gid}})
                 RETURN n, labels(n) AS labels
             """
             result = tx.run(query, gid=graph_id)
@@ -458,7 +458,7 @@ class Neo4jStorage(GraphStorage):
         def _read(tx):
             result = tx.run(
                 """
-                MATCH (src:Entity)-[r:RELATION {graph_id: $gid}]->(tgt:Entity)
+                MATCH (src:Entität)-[r:RELATION {graph_id: $gid}]->(tgt:Entität)
                 RETURN r, src.uuid AS src_uuid, tgt.uuid AS tgt_uuid
                 ORDER BY r.created_at DESC
                 """,
@@ -512,7 +512,7 @@ class Neo4jStorage(GraphStorage):
         def _read(tx):
             # Knoten zählen
             node_result = tx.run(
-                "MATCH (n:Entity {graph_id: $gid}) RETURN count(n) AS cnt",
+                "MATCH (n:Entität {graph_id: $gid}) RETURN count(n) AS cnt",
                 gid=graph_id,
             )
             node_count = node_result.single()["cnt"]
@@ -527,9 +527,9 @@ class Neo4jStorage(GraphStorage):
             # Verschiedene Entitätstypen
             label_result = tx.run(
                 """
-                MATCH (n:Entity {graph_id: $gid})
+                MATCH (n:Entität {graph_id: $gid})
                 UNWIND labels(n) AS lbl
-                WITH lbl WHERE lbl <> 'Entity'
+                WITH lbl WHERE lbl <> 'Entität'
                 RETURN DISTINCT lbl
                 """,
                 gid=graph_id,
@@ -555,7 +555,7 @@ class Neo4jStorage(GraphStorage):
             # Alle Knoten abrufen
             node_result = tx.run(
                 """
-                MATCH (n:Entity {graph_id: $gid})
+                MATCH (n:Entität {graph_id: $gid})
                 RETURN n, labels(n) AS labels
                 """,
                 gid=graph_id,
@@ -570,7 +570,7 @@ class Neo4jStorage(GraphStorage):
             # Alle Kanten mit Quell-/Zielknotennamen abrufen (JOIN)
             edge_result = tx.run(
                 """
-                MATCH (src:Entity)-[r:RELATION {graph_id: $gid}]->(tgt:Entity)
+                MATCH (src:Entität)-[r:RELATION {graph_id: $gid}]->(tgt:Entität)
                 RETURN r, src.uuid AS src_uuid, tgt.uuid AS tgt_uuid,
                        src.name AS src_name, tgt.name AS tgt_name
                 """,
@@ -619,7 +619,7 @@ class Neo4jStorage(GraphStorage):
         return {
             "uuid": props.get("uuid", ""),
             "name": props.get("name", ""),
-            "labels": [l for l in labels if l != "Entity"] if labels else [],
+            "labels": [l for l in labels if l != "Entität"] if labels else [],
             "summary": props.get("summary", ""),
             "attributes": attributes,
             "created_at": props.get("created_at"),

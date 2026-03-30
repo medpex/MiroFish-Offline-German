@@ -49,7 +49,7 @@ def get_graph_entities(graph_id: str):
     """
     Alle Entitäten aus dem Wissensgraph abrufen (gefiltert)
 
-    Gibt nur Knoten zurück, die vordefinierten Entitätstypen entsprechen (Knoten, deren Labels nicht nur Entity sind)
+    Gibt nur Knoten zurück, die vordefinierten Entitätstypen entsprechen (Knoten, deren Labels nicht nur Entität sind)
 
     Abfrageparameter:
         entity_types: Kommagetrennte Liste von Entitätstypen (optional, zur weiteren Filterung)
@@ -369,7 +369,7 @@ def prepare_simulation():
     Anfrage (JSON):
         {
             "simulation_id": "sim_xxxx",                   // Erforderlich, Simulations-ID
-            "entity_types": ["Student", "PublicFigure"],  // Optional, angegebene Entitätstypen
+            "entity_types": ["Student", "Prominenter"],  // Optional, angegebene Entitätstypen
             "use_llm_for_profiles": true,                 // Optional, ob LLM zur Profilgenerierung verwendet werden soll
             "parallel_profile_count": 5,                  // Optional, Anzahl paralleler Profilgenerierungen, Standard 5
             "force_regenerate": false                     // Optional, Neugenerierung erzwingen, Standard false
@@ -886,7 +886,7 @@ def get_simulation_history():
                     "status": "completed",
                     "entities_count": 68,
                     "profiles_count": 68,
-                    "entity_types": ["Student", "Professor", ...],
+                    "entity_types": ["Student", "Professor", ...],  // Deutsch
                     "created_at": "2024-12-10",
                     "updated_at": "2024-12-10",
                     "total_rounds": 120,
@@ -1373,7 +1373,7 @@ def generate_profiles():
     Anfrage (JSON):
         {
             "graph_id": "mirofish_xxxx",     // Erforderlich
-            "entity_types": ["Student"],      // Optional
+            "entity_types": ["Student"],      // Optional, deutsche Typnamen
             "use_llm": true,                  // Optional
             "platform": "reddit"              // Optional
         }
