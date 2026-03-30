@@ -458,11 +458,12 @@ class SimulationRunner:
             cls._processes[simulation_id] = process
             cls._save_run_state(state)
 
-            # Überwachungs-Thread starten
+            # Überwachungs-Thread starten (kein Daemon, damit er nicht bei Server-Neustart gekillt wird)
             monitor_thread = threading.Thread(
                 target=cls._monitor_simulation,
                 args=(simulation_id,),
-                daemon=True
+                daemon=False,
+                name=f"monitor-{simulation_id}"
             )
             monitor_thread.start()
             cls._monitor_threads[simulation_id] = monitor_thread
@@ -490,24 +491,46 @@ class SimulationRunner:
         state = cls.get_run_state(simulation_id)
 
         if not process or not state:
+            logger.error(f"Monitor-Thread kann nicht starten: process={process is not None}, state={state is not None}, simulation_id={simulation_id}")
+            if state:
+                state.runner_status = RunnerStatus.FAILED
+                state.error = "Monitor-Thread konnte Prozess oder Zustand nicht finden"
+                cls._save_run_state(state)
             return
 
         twitter_position = 0
         reddit_position = 0
+        last_activity_time = time.time()
+        HEARTBEAT_TIMEOUT = 600  # 10 Minuten ohne Aktivität = Warnung
 
         try:
             while process.poll() is None:  # Prozess läuft noch
                 # Twitter-Aktionslog lesen
+                old_twitter = twitter_position
                 if os.path.exists(twitter_actions_log):
                     twitter_position = cls._read_action_log(
                         twitter_actions_log, twitter_position, state, "twitter"
                     )
 
                 # Reddit-Aktionslog lesen
+                old_reddit = reddit_position
                 if os.path.exists(reddit_actions_log):
                     reddit_position = cls._read_action_log(
                         reddit_actions_log, reddit_position, state, "reddit"
                     )
+
+                # Heartbeat: prüfen ob Fortschritt stattfindet
+                if twitter_position > old_twitter or reddit_position > old_reddit:
+                    last_activity_time = time.time()
+                else:
+                    idle_seconds = time.time() - last_activity_time
+                    if idle_seconds > HEARTBEAT_TIMEOUT:
+                        logger.warning(
+                            f"Simulation {simulation_id}: Kein Fortschritt seit {int(idle_seconds)}s. "
+                            f"Prozess-PID {process.pid} läuft noch. GPU-Last oder LLM-Timeout prüfen."
+                        )
+                        # Timer zurücksetzen, damit nicht alle 2s gewarnt wird
+                        last_activity_time = time.time()
 
                 # Status aktualisieren
                 cls._save_run_state(state)
@@ -535,8 +558,8 @@ class SimulationRunner:
                     if os.path.exists(main_log_path):
                         with open(main_log_path, 'r', encoding='utf-8') as f:
                             error_info = f.read()[-2000:]  # Letzte 2000 Zeichen nehmen
-                except Exception:
-                    pass
+                except Exception as log_err:
+                    logger.warning(f"Konnte Fehlerlog nicht lesen: {log_err}")
                 state.error = f"Prozess-Exit-Code: {exit_code}, Fehler: {error_info}"
                 logger.error(f"Simulation fehlgeschlagen: {simulation_id}, error={state.error}")
 
@@ -568,14 +591,14 @@ class SimulationRunner:
             if simulation_id in cls._stdout_files:
                 try:
                     cls._stdout_files[simulation_id].close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Fehler beim Schließen der stdout-Datei: {e}")
                 cls._stdout_files.pop(simulation_id, None)
             if simulation_id in cls._stderr_files and cls._stderr_files[simulation_id]:
                 try:
                     cls._stderr_files[simulation_id].close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Fehler beim Schließen der stderr-Datei: {e}")
                 cls._stderr_files.pop(simulation_id, None)
 
     @classmethod
@@ -679,11 +702,11 @@ class SimulationRunner:
                             if graph_updater:
                                 graph_updater.add_activity_from_dict(action_data, platform)
 
-                        except json.JSONDecodeError:
-                            pass
+                        except json.JSONDecodeError as je:
+                            logger.debug(f"Ungültige JSON-Zeile in {log_path}: {str(je)[:100]}")
                 return f.tell()
         except Exception as e:
-            logger.warning(f"Fehler beim Lesen des Aktionslogs: {log_path}, error={e}")
+            logger.error(f"Fehler beim Lesen des Aktionslogs: {log_path}, error={e}", exc_info=True)
             return position
 
     @classmethod

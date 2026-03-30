@@ -81,7 +81,16 @@ class LLMClient:
             extra["use_mmap"] = True
             kwargs["extra_body"] = extra
 
-        response = self.client.chat.completions.create(**kwargs)
+        import logging
+        _logger = logging.getLogger('mirofish.llm_client')
+        try:
+            response = self.client.chat.completions.create(**kwargs)
+        except Exception as e:
+            _logger.error(
+                f"LLM-Aufruf fehlgeschlagen: model={self.model}, "
+                f"base_url={self.base_url}, error={type(e).__name__}: {e}"
+            )
+            raise
         content = response.choices[0].message.content
         # Einige Modelle (wie MiniMax M2.5) enthalten <think>-Denkinhalte in der Antwort, diese müssen entfernt werden
         content = re.sub(r'<think>[\s\S]*?</think>', '', content).strip()

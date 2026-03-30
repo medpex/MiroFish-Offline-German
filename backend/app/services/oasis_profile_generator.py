@@ -514,10 +514,19 @@ class OasisProfileGenerator:
                     last_error = je
 
             except Exception as e:
-                logger.warning(f"LLM-Aufruf fehlgeschlagen (Versuch {attempt+1}): {str(e)[:80]}")
+                error_type = type(e).__name__
+                logger.error(
+                    f"LLM-Aufruf fehlgeschlagen (Versuch {attempt+1}/{max_attempts}): "
+                    f"{error_type}: {str(e)[:200]}"
+                )
+                if "timeout" in str(e).lower() or "timed out" in str(e).lower():
+                    logger.error(
+                        f"TIMEOUT bei Persona-Generierung für '{entity_name}'. "
+                        f"Ollama reagiert möglicherweise nicht mehr — GPU-Last prüfen (nvitop)."
+                    )
                 last_error = e
                 import time
-                time.sleep(1 * (attempt + 1))  # Exponentielles Backoff
+                time.sleep(2 * (attempt + 1))  # Exponentielles Backoff
 
         logger.warning(f"LLM-Persona-Generierung fehlgeschlagen ({max_attempts} Versuche): {last_error}, regelbasierte Generierung wird verwendet")
         return self._generate_profile_rule_based(

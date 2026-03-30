@@ -599,8 +599,8 @@ def prepare_simulation():
                     state.error = str(e)
                     manager._save_simulation_state(state)
 
-        # Hintergrund-Thread starten
-        thread = threading.Thread(target=run_prepare, daemon=True)
+        # Hintergrund-Thread starten (kein Daemon, damit er nicht bei Server-Neustart gekillt wird)
+        thread = threading.Thread(target=run_prepare, daemon=False, name=f"prepare-{simulation_id}")
         thread.start()
 
         return jsonify({

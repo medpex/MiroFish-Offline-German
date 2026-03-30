@@ -589,7 +589,10 @@ Feldbeschreibung:
         try:
             return self._call_llm_with_retry(prompt, system_prompt)
         except Exception as e:
-            logger.warning(f"Zeitkonfig-LLM-Generierung fehlgeschlagen: {e}, Standardkonfiguration wird verwendet")
+            logger.error(
+                f"Zeitkonfig-LLM-Generierung fehlgeschlagen: {type(e).__name__}: {e}. "
+                f"Standardkonfiguration wird verwendet. Bei Timeout: GPU-Last prüfen."
+            )
             return self._get_default_time_config(num_entities)
 
     def _get_default_time_config(self, num_entities: int) -> Dict[str, Any]:
@@ -869,7 +872,7 @@ Geben Sie JSON-Format zurück (kein Markdown):
             result = self._call_llm_with_retry(prompt, system_prompt)
             llm_configs = {cfg["agent_id"]: cfg for cfg in result.get("agent_configs", [])}
         except Exception as e:
-            logger.warning(f"Agent-Konfig-Stapel-LLM-Generierung fehlgeschlagen: {e}, regelbasierte Generierung wird verwendet")
+            logger.error(f"Agent-Konfig-Stapel-LLM-Generierung fehlgeschlagen: {type(e).__name__}: {e}. Regelbasierte Generierung wird verwendet.")
             llm_configs = {}
 
         # AgentActivityConfig-Objekte erstellen
